@@ -25,7 +25,7 @@ const Index = () => {
             </h1>
             
             <p className="text-gray-600 md:text-xl max-w-[700px] mt-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              SwipeConnect helps you discover valuable professional connections through an intuitive card-swiping interface.
+              SyncIn helps you discover valuable professional connections through an intuitive card-swiping interface.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
@@ -62,7 +62,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
             <p className="text-gray-600 md:text-lg max-w-[700px] mx-auto">
-              SwipeConnect makes professional networking intuitive and efficient
+              SyncIn makes professional networking intuitive and efficient
             </p>
           </div>
           
@@ -111,7 +111,7 @@ const Index = () => {
               Ready to build your professional network?
             </h2>
             <p className="text-gray-600 md:text-lg mb-8">
-              Join SwipeConnect today and discover connections that can help advance your career.
+              Join SyncIn today and discover connections that can help advance your career.
             </p>
             
             {currentUser ? (
@@ -137,7 +137,7 @@ const Index = () => {
       <footer className="border-t py-8 mt-auto">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <span className="text-2xl font-bold text-gradient mb-2">SwipeConnect</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-2">SyncIn</span>
             <p className="text-sm text-gray-600 mb-4">
               Professional networking reimagined
             </p>
