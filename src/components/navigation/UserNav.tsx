@@ -9,8 +9,8 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import NotificationsPopover from '@/components/notifications/NotificationsPopover';
 
 const UserNav = () => {
   const { currentUser, logout } = useAuth();
@@ -55,10 +55,7 @@ const UserNav = () => {
       <Link to="/preferences" className="font-medium text-foreground hover:text-primary transition-colors">
         Preferences
       </Link>
-      <Button variant="ghost" size="icon" className="relative">
-        <Bell size={20} />
-        <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-destructive"></span>
-      </Button>
+      <NotificationsPopover />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
