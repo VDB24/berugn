@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import { Apple, Github, Linkedin, Twitter } from 'lucide-react';
+import { Apple, Github, Linkedin, X } from 'lucide-react';
 import { Provider } from '@supabase/supabase-js';
 
 const Login = () => {
@@ -155,8 +155,8 @@ const Login = () => {
                   onClick={() => handleSocialLogin('twitter')}
                   disabled={isLoading}
                 >
-                  <Twitter className="mr-2 h-5 w-5 text-[#1DA1F2]" />
-                  Twitter
+                  <X className="mr-2 h-5 w-5" />
+                  X
                 </Button>
                 <Button 
                   variant="outline" 
