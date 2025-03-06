@@ -80,9 +80,14 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
         }, 
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newNotification = {
-              ...payload.new,
-              type: payload.new.type as "info" | "success" | "warning" | "error"
+            // Ensure the new notification has all required properties
+            const newNotification: Notification = {
+              id: payload.new.id,
+              user_id: payload.new.user_id,
+              message: payload.new.message,
+              type: payload.new.type as "info" | "success" | "warning" | "error",
+              read: payload.new.read,
+              created_at: payload.new.created_at
             };
             
             setNotifications(prev => [newNotification, ...prev]);
@@ -96,9 +101,14 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
           } else if (payload.eventType === 'DELETE') {
             setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
-            const updatedNotification = {
-              ...payload.new,
-              type: payload.new.type as "info" | "success" | "warning" | "error"
+            // Ensure the updated notification has all required properties
+            const updatedNotification: Notification = {
+              id: payload.new.id,
+              user_id: payload.new.user_id,
+              message: payload.new.message,
+              type: payload.new.type as "info" | "success" | "warning" | "error",
+              read: payload.new.read,
+              created_at: payload.new.created_at
             };
             
             setNotifications(prev => 
