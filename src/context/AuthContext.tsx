@@ -1,5 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Provider } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -15,6 +16,7 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (userData: Partial<User>) => Promise<void>;
+  signInWithProvider: (provider: Provider) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,13 +138,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithProvider = async (provider: Provider) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + '/browse',
+        },
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // The user will be redirected to the provider's login page
+      // and then back to the redirectTo URL
+      // We don't need to set the user here as it will be handled on redirect
+    } catch (error) {
+      console.error('Error signing in with provider:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     currentUser,
     isLoading,
     login,
     register,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    signInWithProvider
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
