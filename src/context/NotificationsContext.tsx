@@ -96,11 +96,13 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
           } else if (payload.eventType === 'DELETE') {
             setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
+            const updatedNotification = {
+              ...payload.new,
+              type: payload.new.type as "info" | "success" | "warning" | "error"
+            };
+            
             setNotifications(prev => 
-              prev.map(n => n.id === payload.new.id ? {
-                ...payload.new,
-                type: payload.new.type as "info" | "success" | "warning" | "error"
-              } : n)
+              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
             );
           }
         }
