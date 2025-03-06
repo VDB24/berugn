@@ -19,12 +19,14 @@ interface NotificationsContextProps {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  loading: boolean; // Added loading property
 }
 
 const NotificationsContext = createContext<NotificationsContextProps | undefined>(undefined);
 
 export const NotificationsProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // Added loading state
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
@@ -35,10 +37,12 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (!currentUser) {
       setNotifications([]);
+      setLoading(false);
       return;
     }
 
     const fetchNotifications = async () => {
+      setLoading(true);
       try {
         const { data, error } = await supabase
           .from('notifications')
@@ -57,6 +61,8 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
         setNotifications(typedNotifications);
       } catch (error) {
         console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -167,7 +173,8 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
       unreadCount, 
       markAsRead, 
       markAllAsRead, 
-      deleteNotification 
+      deleteNotification,
+      loading // Added loading property to the context
     }}>
       {children}
     </NotificationsContext.Provider>
