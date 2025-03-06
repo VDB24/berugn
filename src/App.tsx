@@ -5,7 +5,6 @@ import { ProfileProvider } from '@/context/ProfileContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/Header';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -13,6 +12,8 @@ import Browse from '@/pages/Browse';
 import Matches from '@/pages/Matches';
 import Preferences from '@/pages/Preferences';
 import CreateProfile from '@/pages/CreateProfile';
+import About from '@/pages/About';
+import Features from '@/pages/Features';
 import NotFound from '@/pages/NotFound';
 import './App.css';
 
@@ -23,7 +24,6 @@ const App = () => {
         <AuthProvider>
           <ProfileProvider>
             <NotificationsProvider>
-              <Header />
               <main>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -33,6 +33,8 @@ const App = () => {
                   <Route path="/matches" element={<Matches />} />
                   <Route path="/preferences" element={<Preferences />} />
                   <Route path="/create-profile" element={<CreateProfile />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/features" element={<Features />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
