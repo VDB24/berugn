@@ -8,15 +8,16 @@ import Header from '@/components/Header';
 import ProfileCard from '@/components/ProfileCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Star } from 'lucide-react';
+import { Star, RefreshCw } from 'lucide-react';
 
 const Browse = () => {
   const { currentUser } = useAuth();
-  const { potentialConnections, swipeProfile } = useProfile();
+  const { potentialConnections, swipeProfile, loadMoreProfiles } = useProfile();
   const { toast } = useToast();
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [dailyLimit, setDailyLimit] = useState({ total: 20, remaining: 20 });
 
   useEffect(() => {
@@ -107,6 +108,32 @@ const Browse = () => {
     handleSwipe('right');
   };
 
+  // Handle refresh of profiles
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Reset current index
+      setCurrentIndex(0);
+      
+      // In a real app, this would call an API to refresh the profiles
+      // For demo purposes, we'll simulate a delay and reset
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: 'Profiles refreshed',
+        description: 'New potential connections loaded',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to refresh profiles. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -114,7 +141,7 @@ const Browse = () => {
       <main className="flex-1 container max-w-4xl px-4 py-12 mt-12">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Discover Professionals</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Swipe right to connect, left to pass
           </p>
           
@@ -128,7 +155,7 @@ const Browse = () => {
           {isLoading ? (
             <div className="w-full max-w-sm">
               <Skeleton className="h-72 w-full rounded-t-xl" />
-              <div className="p-6 space-y-2 bg-white rounded-b-xl border">
+              <div className="p-6 space-y-2 bg-card rounded-b-xl border">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
                 <div className="flex flex-wrap gap-1 mt-3">
@@ -154,17 +181,42 @@ const Browse = () => {
                   onSuperConnect={handleSuperConnect}
                 />
               ) : (
-                <div className="text-center bg-white p-8 rounded-xl shadow-lg max-w-md">
+                <div className="text-center bg-card p-8 rounded-xl shadow-lg max-w-md">
                   <div className="flex justify-center">
                     <Star className="h-16 w-16 text-secondary mb-6" />
                   </div>
                   <h2 className="text-2xl font-bold mb-2">No more profiles</h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6">
                     You've viewed all available profiles for now. Check back later for new connections!
                   </p>
-                  <Button variant="outline" onClick={() => setCurrentIndex(0)}>
-                    Start over
-                  </Button>
+                  <div className="space-y-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                      className="w-full"
+                    >
+                      {isRefreshing ? (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          Refreshing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Refresh Profiles
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      onClick={() => setCurrentIndex(0)}
+                      className="w-full"
+                      disabled={potentialConnections.length === 0}
+                    >
+                      Start Over
+                    </Button>
+                  </div>
                 </div>
               )}
             </>

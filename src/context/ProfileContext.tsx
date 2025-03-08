@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -44,6 +43,7 @@ interface ProfileContextType {
   updateProfile: (profileData: Partial<Profile>) => Promise<void>;
   swipeProfile: (profileId: string, direction: 'left' | 'right') => Promise<void>;
   updatePreferences: (newPreferences: Partial<Preference>) => Promise<void>;
+  loadMoreProfiles: () => Promise<void>;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -137,6 +137,61 @@ const DEMO_PROFILES: Profile[] = [
   }
 ];
 
+// Additional profiles to load when refreshing
+const ADDITIONAL_PROFILES: Profile[] = [
+  {
+    id: '6',
+    userId: '6',
+    name: 'Alex Rivera',
+    jobTitle: 'Frontend Developer',
+    company: 'WebSolutions',
+    industry: 'Technology',
+    experience: '1-3 years',
+    bio: 'Frontend developer specializing in React and Vue. Passionate about creating beautiful and accessible user interfaces.',
+    skills: [
+      { id: '16', name: 'React' },
+      { id: '17', name: 'Vue' },
+      { id: '18', name: 'CSS' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/alexrivera',
+    profileImage: 'https://randomuser.me/api/portraits/men/10.jpg'
+  },
+  {
+    id: '7',
+    userId: '7',
+    name: 'Sophia Kim',
+    jobTitle: 'Project Manager',
+    company: 'GlobalTech',
+    industry: 'Technology',
+    experience: '3-5 years',
+    bio: 'Project manager with a technical background, focused on delivering software products on time and within budget.',
+    skills: [
+      { id: '19', name: 'Agile' },
+      { id: '20', name: 'Scrum' },
+      { id: '21', name: 'JIRA' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/sophiakim',
+    profileImage: 'https://randomuser.me/api/portraits/women/10.jpg'
+  },
+  {
+    id: '8',
+    userId: '8',
+    name: 'Marcus Johnson',
+    jobTitle: 'DevOps Engineer',
+    company: 'CloudNative',
+    industry: 'Technology',
+    experience: '3-5 years',
+    bio: 'DevOps engineer specializing in cloud infrastructure, CI/CD pipelines, and containerization technologies.',
+    skills: [
+      { id: '22', name: 'Docker' },
+      { id: '23', name: 'Kubernetes' },
+      { id: '24', name: 'AWS' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/marcusjohnson',
+    profileImage: 'https://randomuser.me/api/portraits/men/15.jpg'
+  }
+];
+
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
@@ -147,6 +202,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     experienceLevels: [],
     connectionPurposes: []
   });
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
 
   // Load user profile when currentUser changes
   useEffect(() => {
@@ -158,8 +214,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setUserProfile(profile);
       }
 
-      // Get potential connections (excluding the current user)
+      // Get potential connections (excluding the current user) and store all profiles
       const connections = DEMO_PROFILES.filter(p => p.userId !== currentUser.id);
+      setAllProfiles(connections);
       setPotentialConnections(connections);
 
       // Load saved preferences from localStorage
@@ -183,6 +240,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         experienceLevels: [],
         connectionPurposes: []
       });
+      setAllProfiles([]);
     }
   }, [currentUser]);
 
@@ -251,7 +309,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
-    // Remove swiped profile from potential connections
+    // Remove swiped profile from potential connections but don't remove from allProfiles
     const updatedConnections = potentialConnections.filter(p => p.id !== profileId);
     setPotentialConnections(updatedConnections);
   };
@@ -272,6 +330,20 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem(`swipe_connect_preferences_${currentUser.id}`, JSON.stringify(updatedPreferences));
   };
 
+  // New function to load more profiles (refresh)
+  const loadMoreProfiles = async () => {
+    if (!currentUser) throw new Error('No user is logged in');
+
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // In a real app, fetch new profiles from API
+    // For demo, reset the potential connections to include all profiles and add additional ones
+    const newProfiles = [...allProfiles, ...ADDITIONAL_PROFILES];
+    setAllProfiles(newProfiles);
+    setPotentialConnections(newProfiles);
+  };
+
   const value = {
     userProfile,
     potentialConnections,
@@ -280,7 +352,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     createProfile,
     updateProfile,
     swipeProfile,
-    updatePreferences
+    updatePreferences,
+    loadMoreProfiles
   };
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
