@@ -36,8 +36,15 @@ const Browse = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Update profiles remaining when potentialConnections or currentIndex changes
+  // Reset currentIndex when potentialConnections changes, but only if it's out of bounds
   useEffect(() => {
+    console.log(`Profiles loaded: ${potentialConnections.length}`);
+    if (currentIndex >= potentialConnections.length && potentialConnections.length > 0) {
+      console.log('Resetting current index to 0');
+      setCurrentIndex(0);
+    }
+    
+    // Update profiles remaining
     setProfilesRemaining(potentialConnections.length - currentIndex);
     console.log(`Profiles remaining: ${potentialConnections.length - currentIndex}, currentIndex: ${currentIndex}, total profiles: ${potentialConnections.length}`);
   }, [potentialConnections, currentIndex]);
@@ -90,8 +97,9 @@ const Browse = () => {
         });
       }
       
-      // Move to next profile
-      setCurrentIndex(currentIndex + 1);
+      // Move to next profile without changing currentIndex immediately
+      // Let the useEffect handle updates to profilesRemaining
+      setCurrentIndex(prevIndex => prevIndex + 1);
     } catch (error) {
       toast({
         title: 'Error',
@@ -121,9 +129,6 @@ const Browse = () => {
     try {
       // In a real app, this would call an API to refresh the profiles
       await loadMoreProfiles();
-      
-      // Reset current index to start from the beginning
-      setCurrentIndex(0);
       
       toast({
         title: 'Profiles refreshed',

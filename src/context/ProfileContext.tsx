@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -438,6 +439,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
+    // Remove swiped profile from potential connections
     const updatedConnections = potentialConnections.filter(p => p.id !== profileId);
     setPotentialConnections(updatedConnections);
   };
@@ -458,14 +460,16 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const combinedProfiles = [...allProfiles];
+    // Create a map of existing profile IDs to prevent duplicates
+    const existingProfileIds = new Map(allProfiles.map(p => [p.id, true]));
     
-    ADDITIONAL_PROFILES.forEach(profile => {
-      if (!combinedProfiles.some(p => p.id === profile.id)) {
-        combinedProfiles.push(profile);
-      }
-    });
+    // Filter additional profiles to only include those not already in allProfiles
+    const newProfilesToAdd = ADDITIONAL_PROFILES.filter(p => !existingProfileIds.has(p.id));
     
+    console.log(`Adding ${newProfilesToAdd.length} new profiles`);
+    
+    // Add new profiles to the existing list
+    const combinedProfiles = [...allProfiles, ...newProfilesToAdd];
     setAllProfiles(combinedProfiles);
     setPotentialConnections(combinedProfiles);
   };
