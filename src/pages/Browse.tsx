@@ -19,6 +19,7 @@ const Browse = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dailyLimit, setDailyLimit] = useState({ total: 20, remaining: 20 });
+  const [profilesRemaining, setProfilesRemaining] = useState(0);
 
   useEffect(() => {
     // Simulate loading delay
@@ -34,6 +35,12 @@ const Browse = () => {
     
     return () => clearTimeout(timer);
   }, []);
+
+  // Update profiles remaining when potentialConnections or currentIndex changes
+  useEffect(() => {
+    setProfilesRemaining(potentialConnections.length - currentIndex);
+    console.log(`Profiles remaining: ${potentialConnections.length - currentIndex}, currentIndex: ${currentIndex}, total profiles: ${potentialConnections.length}`);
+  }, [potentialConnections, currentIndex]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
@@ -112,12 +119,11 @@ const Browse = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Reset current index
-      setCurrentIndex(0);
-      
       // In a real app, this would call an API to refresh the profiles
-      // For demo purposes, we'll simulate a delay and reset
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await loadMoreProfiles();
+      
+      // Reset current index to start from the beginning
+      setCurrentIndex(0);
       
       toast({
         title: 'Profiles refreshed',
@@ -148,6 +154,11 @@ const Browse = () => {
           {/* Daily limit indicator */}
           <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm mt-4">
             <span>{dailyLimit.remaining} of {dailyLimit.total} views remaining today</span>
+          </div>
+          
+          {/* Profiles count indicator */}
+          <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm mt-2 ml-2">
+            <span>{profilesRemaining} profiles available</span>
           </div>
         </div>
         

@@ -357,34 +357,28 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
 
-  // Load user profile when currentUser changes
   useEffect(() => {
     if (currentUser) {
-      // Find user profile in mock data
       const profile = DEMO_PROFILES.find(p => p.userId === currentUser.id);
       
       if (profile) {
         setUserProfile(profile);
       }
 
-      // Get potential connections (excluding the current user) and store all profiles
       const connections = DEMO_PROFILES.filter(p => p.userId !== currentUser.id);
       setAllProfiles(connections);
       setPotentialConnections(connections);
 
-      // Load saved preferences from localStorage
       const savedPreferences = localStorage.getItem(`swipe_connect_preferences_${currentUser.id}`);
       if (savedPreferences) {
         setPreferences(JSON.parse(savedPreferences));
       }
 
-      // Load saved matches from localStorage
       const savedMatches = localStorage.getItem(`swipe_connect_matches_${currentUser.id}`);
       if (savedMatches) {
         setMatches(JSON.parse(savedMatches));
       }
     } else {
-      // Clear state when user logs out
       setUserProfile(null);
       setPotentialConnections([]);
       setMatches([]);
@@ -400,69 +394,50 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const createProfile = async (profileData: Omit<Profile, 'id' | 'userId'>) => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Create new profile
     const newProfile: Profile = {
       id: `profile_${Date.now()}`,
       userId: currentUser.id,
       ...profileData
     };
 
-    // Update user profile in state
     setUserProfile(newProfile);
-
-    // In a real app, this would be saved to a database
   };
 
   const updateProfile = async (profileData: Partial<Profile>) => {
     if (!currentUser || !userProfile) throw new Error('No user profile found');
 
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Update profile
     const updatedProfile = { ...userProfile, ...profileData };
 
-    // Update profile in state
     setUserProfile(updatedProfile);
-
-    // In a real app, this would update the database
   };
 
   const swipeProfile = async (profileId: string, direction: 'left' | 'right') => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (direction === 'right') {
-      // Create new connection
       const newConnection: Connection = {
         id: `connection_${Date.now()}`,
         userId: currentUser.id,
         connectedUserId: profileId,
-        status: 'pending', // Would be 'connected' if matched
+        status: 'pending',
         createdAt: new Date().toISOString()
       };
 
-      // In a real app, we would check if this creates a match
-
-      // For demo purposes, randomly create matches ~30% of the time
       if (Math.random() > 0.7) {
         newConnection.status = 'connected';
         
-        // Add to matches
         const updatedMatches = [...matches, newConnection];
         setMatches(updatedMatches);
-        
-        // Save to localStorage
         localStorage.setItem(`swipe_connect_matches_${currentUser.id}`, JSON.stringify(updatedMatches));
       }
     }
 
-    // Remove swiped profile from potential connections but don't remove from allProfiles
     const updatedConnections = potentialConnections.filter(p => p.id !== profileId);
     setPotentialConnections(updatedConnections);
   };
@@ -470,31 +445,29 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updatePreferences = async (newPreferences: Partial<Preference>) => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Update preferences
     const updatedPreferences = { ...preferences, ...newPreferences };
     
-    // Update in state
     setPreferences(updatedPreferences);
-    
-    // Save to localStorage
     localStorage.setItem(`swipe_connect_preferences_${currentUser.id}`, JSON.stringify(updatedPreferences));
   };
 
-  // New function to load more profiles (refresh)
   const loadMoreProfiles = async () => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // In a real app, fetch new profiles from API
-    // For demo, reset the potential connections to include all profiles and add additional ones
-    const newProfiles = [...allProfiles, ...ADDITIONAL_PROFILES];
-    setAllProfiles(newProfiles);
-    setPotentialConnections(newProfiles);
+    const combinedProfiles = [...allProfiles];
+    
+    ADDITIONAL_PROFILES.forEach(profile => {
+      if (!combinedProfiles.some(p => p.id === profile.id)) {
+        combinedProfiles.push(profile);
+      }
+    });
+    
+    setAllProfiles(combinedProfiles);
+    setPotentialConnections(combinedProfiles);
   };
 
   const value = {
