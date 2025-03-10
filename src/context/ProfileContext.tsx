@@ -1,4 +1,3 @@
-<lov-codelov-code>
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -226,8 +225,8 @@ const DEMO_PROFILES: Profile[] = [
 // Additional profiles to load when refreshing
 const ADDITIONAL_PROFILES: Profile[] = [
   {
-    id: '6',
-    userId: '6',
+    id: '11',
+    userId: '11',
     name: 'Alex Rivera',
     jobTitle: 'Frontend Developer',
     company: 'WebSolutions',
@@ -235,16 +234,16 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '1-3 years',
     bio: 'Frontend developer specializing in React and Vue. Passionate about creating beautiful and accessible user interfaces.',
     skills: [
-      { id: '16', name: 'React' },
-      { id: '17', name: 'Vue' },
-      { id: '18', name: 'CSS' }
+      { id: '31', name: 'React' },
+      { id: '32', name: 'Vue' },
+      { id: '33', name: 'CSS' }
     ],
     linkedInUrl: 'https://linkedin.com/in/alexrivera',
     profileImage: 'https://randomuser.me/api/portraits/men/10.jpg'
   },
   {
-    id: '7',
-    userId: '7',
+    id: '12',
+    userId: '12',
     name: 'Sophia Kim',
     jobTitle: 'Project Manager',
     company: 'GlobalTech',
@@ -252,16 +251,16 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '3-5 years',
     bio: 'Project manager with a technical background, focused on delivering software products on time and within budget.',
     skills: [
-      { id: '19', name: 'Agile' },
-      { id: '20', name: 'Scrum' },
-      { id: '21', name: 'JIRA' }
+      { id: '34', name: 'Agile' },
+      { id: '35', name: 'Scrum' },
+      { id: '36', name: 'JIRA' }
     ],
     linkedInUrl: 'https://linkedin.com/in/sophiakim',
     profileImage: 'https://randomuser.me/api/portraits/women/10.jpg'
   },
   {
-    id: '8',
-    userId: '8',
+    id: '13',
+    userId: '13',
     name: 'Marcus Johnson',
     jobTitle: 'DevOps Engineer',
     company: 'CloudNative',
@@ -269,16 +268,16 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '3-5 years',
     bio: 'DevOps engineer specializing in cloud infrastructure, CI/CD pipelines, and containerization technologies.',
     skills: [
-      { id: '22', name: 'Docker' },
-      { id: '23', name: 'Kubernetes' },
-      { id: '24', name: 'AWS' }
+      { id: '37', name: 'Docker' },
+      { id: '38', name: 'Kubernetes' },
+      { id: '39', name: 'AWS' }
     ],
     linkedInUrl: 'https://linkedin.com/in/marcusjohnson',
     profileImage: 'https://randomuser.me/api/portraits/men/15.jpg'
   },
   {
-    id: '9',
-    userId: '9',
+    id: '14',
+    userId: '14',
     name: 'Olivia Taylor',
     jobTitle: 'Blockchain Developer',
     company: 'ChainInnovate',
@@ -286,16 +285,16 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '1-3 years',
     bio: 'Blockchain developer with expertise in smart contracts and decentralized applications. Passionate about the future of Web3 technologies.',
     skills: [
-      { id: '25', name: 'Solidity' },
-      { id: '26', name: 'Ethereum' },
-      { id: '27', name: 'Smart Contracts' }
+      { id: '40', name: 'Solidity' },
+      { id: '41', name: 'Ethereum' },
+      { id: '42', name: 'Smart Contracts' }
     ],
     linkedInUrl: 'https://linkedin.com/in/oliviataylor',
     profileImage: 'https://randomuser.me/api/portraits/women/23.jpg'
   },
   {
-    id: '10',
-    userId: '10',
+    id: '15',
+    userId: '15',
     name: 'Jason Park',
     jobTitle: 'Mobile App Developer',
     company: 'AppWorks',
@@ -303,16 +302,16 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '3-5 years',
     bio: 'Mobile app developer specializing in React Native and Swift. Focused on creating seamless cross-platform experiences.',
     skills: [
-      { id: '28', name: 'React Native' },
-      { id: '29', name: 'Swift' },
-      { id: '30', name: 'Mobile UX' }
+      { id: '43', name: 'React Native' },
+      { id: '44', name: 'Swift' },
+      { id: '45', name: 'Mobile UX' }
     ],
     linkedInUrl: 'https://linkedin.com/in/jasonpark',
     profileImage: 'https://randomuser.me/api/portraits/men/28.jpg'
   },
   {
-    id: '11',
-    userId: '11',
+    id: '16',
+    userId: '16',
     name: 'Emma Rodriguez',
     jobTitle: 'UI/UX Researcher',
     company: 'UserFirst',
@@ -320,16 +319,16 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '1-3 years',
     bio: 'UI/UX researcher focused on understanding user behaviors and needs through qualitative and quantitative methods.',
     skills: [
-      { id: '31', name: 'User Testing' },
-      { id: '32', name: 'Usability Studies' },
-      { id: '33', name: 'Data Analysis' }
+      { id: '46', name: 'User Testing' },
+      { id: '47', name: 'Usability Studies' },
+      { id: '48', name: 'Data Analysis' }
     ],
     linkedInUrl: 'https://linkedin.com/in/emmarodriguez',
     profileImage: 'https://randomuser.me/api/portraits/women/33.jpg'
   },
   {
-    id: '12',
-    userId: '12',
+    id: '17',
+    userId: '17',
     name: 'Tyler Jackson',
     jobTitle: 'Game Developer',
     company: 'GameCraft',
@@ -337,9 +336,9 @@ const ADDITIONAL_PROFILES: Profile[] = [
     experience: '3-5 years',
     bio: 'Game developer with experience in Unity and Unreal Engine. Passionate about creating immersive gaming experiences.',
     skills: [
-      { id: '34', name: 'Unity' },
-      { id: '35', name: 'C#' },
-      { id: '36', name: 'Game Design' }
+      { id: '49', name: 'Unity' },
+      { id: '50', name: 'C#' },
+      { id: '51', name: 'Game Design' }
     ],
     linkedInUrl: 'https://linkedin.com/in/tylerjackson',
     profileImage: 'https://randomuser.me/api/portraits/men/45.jpg'
@@ -520,4 +519,3 @@ export const useProfile = () => {
   }
   return context;
 };
-</lov-code>
