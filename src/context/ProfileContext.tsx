@@ -1,3 +1,4 @@
+<lov-codelov-code>
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -134,6 +135,91 @@ const DEMO_PROFILES: Profile[] = [
     ],
     linkedInUrl: 'https://linkedin.com/in/jameswilson',
     profileImage: 'https://randomuser.me/api/portraits/men/5.jpg'
+  },
+  {
+    id: '6',
+    userId: '6',
+    name: 'Jennifer Lee',
+    jobTitle: 'Full Stack Developer',
+    company: 'TechFusion',
+    industry: 'Technology',
+    experience: '3-5 years',
+    bio: 'Full stack developer specializing in React and Node.js. Passionate about creating efficient, scalable applications and mentoring junior developers.',
+    skills: [
+      { id: '16', name: 'React' },
+      { id: '17', name: 'Node.js' },
+      { id: '18', name: 'TypeScript' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/jenniferlee',
+    profileImage: 'https://randomuser.me/api/portraits/women/15.jpg'
+  },
+  {
+    id: '7',
+    userId: '7',
+    name: 'Robert Garcia',
+    jobTitle: 'Cybersecurity Analyst',
+    company: 'SecureNet',
+    industry: 'Information Security',
+    experience: '5-10 years',
+    bio: 'Cybersecurity professional with a focus on threat detection and incident response. Committed to building robust security systems for organizations.',
+    skills: [
+      { id: '19', name: 'Network Security' },
+      { id: '20', name: 'Penetration Testing' },
+      { id: '21', name: 'Incident Response' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/robertgarcia',
+    profileImage: 'https://randomuser.me/api/portraits/men/22.jpg'
+  },
+  {
+    id: '8',
+    userId: '8',
+    name: 'Priya Patel',
+    jobTitle: 'Product Designer',
+    company: 'DesignIQ',
+    industry: 'Design',
+    experience: '3-5 years',
+    bio: 'Product designer with a background in UX research and visual design. Passionate about creating user-centered products that solve real problems.',
+    skills: [
+      { id: '22', name: 'UX/UI Design' },
+      { id: '23', name: 'Prototyping' },
+      { id: '24', name: 'User Research' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/priyapatel',
+    profileImage: 'https://randomuser.me/api/portraits/women/29.jpg'
+  },
+  {
+    id: '9',
+    userId: '9',
+    name: 'David Kim',
+    jobTitle: 'AI Research Scientist',
+    company: 'InnovateAI',
+    industry: 'Artificial Intelligence',
+    experience: '5-10 years',
+    bio: 'AI researcher specializing in natural language processing and machine learning. Focused on developing ethical AI solutions that enhance human capabilities.',
+    skills: [
+      { id: '25', name: 'Machine Learning' },
+      { id: '26', name: 'Natural Language Processing' },
+      { id: '27', name: 'Python' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/davidkim',
+    profileImage: 'https://randomuser.me/api/portraits/men/36.jpg'
+  },
+  {
+    id: '10',
+    userId: '10',
+    name: 'Sophia Martinez',
+    jobTitle: 'Digital Marketing Specialist',
+    company: 'GrowthHackers',
+    industry: 'Marketing',
+    experience: '1-3 years',
+    bio: 'Digital marketing specialist with expertise in SEO, content marketing, and social media strategy. Passionate about data-driven marketing approaches.',
+    skills: [
+      { id: '28', name: 'SEO' },
+      { id: '29', name: 'Content Strategy' },
+      { id: '30', name: 'Social Media Marketing' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/sophiamartinez',
+    profileImage: 'https://randomuser.me/api/portraits/women/42.jpg'
   }
 ];
 
@@ -189,6 +275,74 @@ const ADDITIONAL_PROFILES: Profile[] = [
     ],
     linkedInUrl: 'https://linkedin.com/in/marcusjohnson',
     profileImage: 'https://randomuser.me/api/portraits/men/15.jpg'
+  },
+  {
+    id: '9',
+    userId: '9',
+    name: 'Olivia Taylor',
+    jobTitle: 'Blockchain Developer',
+    company: 'ChainInnovate',
+    industry: 'Technology',
+    experience: '1-3 years',
+    bio: 'Blockchain developer with expertise in smart contracts and decentralized applications. Passionate about the future of Web3 technologies.',
+    skills: [
+      { id: '25', name: 'Solidity' },
+      { id: '26', name: 'Ethereum' },
+      { id: '27', name: 'Smart Contracts' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/oliviataylor',
+    profileImage: 'https://randomuser.me/api/portraits/women/23.jpg'
+  },
+  {
+    id: '10',
+    userId: '10',
+    name: 'Jason Park',
+    jobTitle: 'Mobile App Developer',
+    company: 'AppWorks',
+    industry: 'Technology',
+    experience: '3-5 years',
+    bio: 'Mobile app developer specializing in React Native and Swift. Focused on creating seamless cross-platform experiences.',
+    skills: [
+      { id: '28', name: 'React Native' },
+      { id: '29', name: 'Swift' },
+      { id: '30', name: 'Mobile UX' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/jasonpark',
+    profileImage: 'https://randomuser.me/api/portraits/men/28.jpg'
+  },
+  {
+    id: '11',
+    userId: '11',
+    name: 'Emma Rodriguez',
+    jobTitle: 'UI/UX Researcher',
+    company: 'UserFirst',
+    industry: 'Design',
+    experience: '1-3 years',
+    bio: 'UI/UX researcher focused on understanding user behaviors and needs through qualitative and quantitative methods.',
+    skills: [
+      { id: '31', name: 'User Testing' },
+      { id: '32', name: 'Usability Studies' },
+      { id: '33', name: 'Data Analysis' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/emmarodriguez',
+    profileImage: 'https://randomuser.me/api/portraits/women/33.jpg'
+  },
+  {
+    id: '12',
+    userId: '12',
+    name: 'Tyler Jackson',
+    jobTitle: 'Game Developer',
+    company: 'GameCraft',
+    industry: 'Gaming',
+    experience: '3-5 years',
+    bio: 'Game developer with experience in Unity and Unreal Engine. Passionate about creating immersive gaming experiences.',
+    skills: [
+      { id: '34', name: 'Unity' },
+      { id: '35', name: 'C#' },
+      { id: '36', name: 'Game Design' }
+    ],
+    linkedInUrl: 'https://linkedin.com/in/tylerjackson',
+    profileImage: 'https://randomuser.me/api/portraits/men/45.jpg'
   }
 ];
 
@@ -366,3 +520,4 @@ export const useProfile = () => {
   }
   return context;
 };
+</lov-code>
