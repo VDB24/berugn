@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -357,6 +356,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     connectionPurposes: []
   });
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+  const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (currentUser) {
@@ -379,6 +379,11 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (savedMatches) {
         setMatches(JSON.parse(savedMatches));
       }
+
+      const savedSwipedIds = localStorage.getItem(`swipe_connect_swiped_${currentUser.id}`);
+      if (savedSwipedIds) {
+        setSwipedProfileIds(new Set(JSON.parse(savedSwipedIds)));
+      }
     } else {
       setUserProfile(null);
       setPotentialConnections([]);
@@ -389,6 +394,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         connectionPurposes: []
       });
       setAllProfiles([]);
+      setSwipedProfileIds(new Set());
     }
   }, [currentUser]);
 
@@ -421,6 +427,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
+    const newSwipedIds = new Set(swipedProfileIds);
+    newSwipedIds.add(profileId);
+    setSwipedProfileIds(newSwipedIds);
+    
+    localStorage.setItem(`swipe_connect_swiped_${currentUser.id}`, JSON.stringify([...newSwipedIds]));
+
     if (direction === 'right') {
       const newConnection: Connection = {
         id: `connection_${Date.now()}`,
@@ -439,9 +451,17 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
-    // Remove swiped profile from potential connections
+    console.log(`Swiped profile ${profileId} ${direction}`);
+    
     const updatedConnections = potentialConnections.filter(p => p.id !== profileId);
     setPotentialConnections(updatedConnections);
+    
+    console.log(`Profiles remaining after swipe: ${updatedConnections.length}`);
+    
+    if (updatedConnections.length < 3) {
+      console.log("Running low on profiles, loading more...");
+      await loadMoreProfiles();
+    }
   };
 
   const updatePreferences = async (newPreferences: Partial<Preference>) => {
@@ -460,18 +480,15 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Create a map of existing profile IDs to prevent duplicates
-    const existingProfileIds = new Map(allProfiles.map(p => [p.id, true]));
+    console.log("Loading more profiles...");
     
-    // Filter additional profiles to only include those not already in allProfiles
-    const newProfilesToAdd = ADDITIONAL_PROFILES.filter(p => !existingProfileIds.has(p.id));
+    const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
+      .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
     
-    console.log(`Adding ${newProfilesToAdd.length} new profiles`);
+    console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
     
-    // Add new profiles to the existing list
-    const combinedProfiles = [...allProfiles, ...newProfilesToAdd];
-    setAllProfiles(combinedProfiles);
-    setPotentialConnections(combinedProfiles);
+    setAllProfiles(availableProfiles);
+    setPotentialConnections(availableProfiles);
   };
 
   const value = {

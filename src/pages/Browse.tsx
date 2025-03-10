@@ -36,18 +36,19 @@ const Browse = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Reset currentIndex when potentialConnections changes, but only if it's out of bounds
   useEffect(() => {
     console.log(`Profiles loaded: ${potentialConnections.length}`);
-    if (currentIndex >= potentialConnections.length && potentialConnections.length > 0) {
-      console.log('Resetting current index to 0');
+    
+    // Always reset currentIndex to 0 when potentialConnections change
+    if (potentialConnections.length > 0) {
+      console.log('Setting current index to 0');
       setCurrentIndex(0);
     }
     
     // Update profiles remaining
-    setProfilesRemaining(potentialConnections.length - currentIndex);
-    console.log(`Profiles remaining: ${potentialConnections.length - currentIndex}, currentIndex: ${currentIndex}, total profiles: ${potentialConnections.length}`);
-  }, [potentialConnections, currentIndex]);
+    setProfilesRemaining(potentialConnections.length);
+    console.log(`Total profiles: ${potentialConnections.length}, currentIndex: ${currentIndex}`);
+  }, [potentialConnections]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
@@ -61,7 +62,8 @@ const Browse = () => {
 
   // Handle swipe action
   const handleSwipe = async (direction: 'left' | 'right') => {
-    if (currentIndex >= potentialConnections.length) {
+    if (currentIndex >= potentialConnections.length || potentialConnections.length === 0) {
+      console.log("No profiles to swipe");
       return;
     }
     
@@ -85,6 +87,7 @@ const Browse = () => {
     try {
       // Get current profile being swiped
       const profile = potentialConnections[currentIndex];
+      console.log(`Swiping profile: ${profile.id}, ${profile.name}`);
       
       // Process swipe
       await swipeProfile(profile.id, direction);
@@ -97,10 +100,10 @@ const Browse = () => {
         });
       }
       
-      // Move to next profile without changing currentIndex immediately
-      // Let the useEffect handle updates to profilesRemaining
-      setCurrentIndex(prevIndex => prevIndex + 1);
+      // If we've reached the end of the available profiles, reset the index
+      // The useEffect will update profilesRemaining
     } catch (error) {
+      console.error("Swipe error:", error);
       toast({
         title: 'Error',
         description: 'Failed to process your action. Please try again.',
@@ -127,7 +130,7 @@ const Browse = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // In a real app, this would call an API to refresh the profiles
+      console.log("Manually refreshing profiles...");
       await loadMoreProfiles();
       
       toast({
@@ -135,6 +138,7 @@ const Browse = () => {
         description: 'New potential connections loaded',
       });
     } catch (error) {
+      console.error("Refresh error:", error);
       toast({
         title: 'Error',
         description: 'Failed to refresh profiles. Please try again.',
@@ -144,6 +148,10 @@ const Browse = () => {
       setIsRefreshing(false);
     }
   };
+
+  // Display the current profile being viewed
+  const currentProfile = potentialConnections.length > 0 ? potentialConnections[currentIndex] : null;
+  console.log("Current profile:", currentProfile?.id, currentProfile?.name);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -190,9 +198,9 @@ const Browse = () => {
             </div>
           ) : (
             <>
-              {potentialConnections.length > 0 && currentIndex < potentialConnections.length ? (
+              {currentProfile ? (
                 <ProfileCard
-                  profile={potentialConnections[currentIndex]}
+                  profile={currentProfile}
                   onSwipe={handleSwipe}
                   onSuperConnect={handleSuperConnect}
                 />
@@ -223,14 +231,6 @@ const Browse = () => {
                           Refresh Profiles
                         </>
                       )}
-                    </Button>
-                    <Button 
-                      variant="default" 
-                      onClick={() => setCurrentIndex(0)}
-                      className="w-full"
-                      disabled={potentialConnections.length === 0}
-                    >
-                      Start Over
                     </Button>
                   </div>
                 </div>
