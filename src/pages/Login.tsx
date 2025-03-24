@@ -31,10 +31,11 @@ const Login = () => {
     try {
       await login(email, password);
       toast({
-        title: 'Login successful',
-        description: 'Welcome back to SwipeConnect!',
+        title: 'Verification required',
+        description: 'A verification code has been sent to your email.',
       });
-      navigate('/browse');
+      // Redirect to OTP verification page with email in state
+      navigate('/verify-otp', { state: { email } });
     } catch (err) {
       setError('Invalid email or password. Please try again.');
       toast({

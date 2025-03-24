@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Provider } from '@supabase/supabase-js';
@@ -17,6 +18,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUserProfile: (userData: Partial<User>) => Promise<void>;
   signInWithProvider: (provider: Provider) => Promise<void>;
+  verifyOTP: (email: string, otp: string) => Promise<void>;
+  resendOTP: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +41,9 @@ const DEMO_USERS = [
     profileCompleted: false
   }
 ];
+
+// Mock OTP storage
+const MOCK_OTP_STORE: Record<string, string> = {};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -65,12 +71,81 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Invalid email or password');
       }
       
+      // Generate a random 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store OTP in our mock store
+      MOCK_OTP_STORE[email] = otp;
+      
+      // In a real app, you would send this OTP to the user's email
+      console.log(`OTP for ${email}: ${otp}`);
+      
+      // Don't set the user yet - require OTP verification first
+      return Promise.resolve();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOTP = async (email: string, otp: string) => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if OTP matches
+      if (MOCK_OTP_STORE[email] !== otp) {
+        throw new Error('Invalid OTP');
+      }
+      
+      // Clear OTP after successful verification
+      delete MOCK_OTP_STORE[email];
+      
+      // Find user with matching email
+      const user = DEMO_USERS.find(u => u.email === email);
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
       // Create a user object without the password
       const { password: _, ...userWithoutPassword } = user;
       
       // Save to state and localStorage
       setCurrentUser(userWithoutPassword);
       localStorage.setItem('swipe_connect_user', JSON.stringify(userWithoutPassword));
+      
+      return Promise.resolve();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendOTP = async (email: string) => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if email exists
+      const user = DEMO_USERS.find(u => u.email === email);
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // Generate a new random 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store OTP in our mock store
+      MOCK_OTP_STORE[email] = otp;
+      
+      // In a real app, you would send this OTP to the user's email
+      console.log(`New OTP for ${email}: ${otp}`);
+      
+      return Promise.resolve();
     } catch (error) {
       throw error;
     } finally {
@@ -170,7 +245,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateUserProfile,
-    signInWithProvider
+    signInWithProvider,
+    verifyOTP,
+    resendOTP
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
