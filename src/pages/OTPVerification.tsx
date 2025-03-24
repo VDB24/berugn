@@ -89,6 +89,13 @@ const OTPVerification = () => {
     }
   };
   
+  // Create slots array for OTP input
+  const renderSlots = () => {
+    return Array.from({ length: 6 }, (_, i) => (
+      <InputOTPSlot key={i} index={i} className="w-12 h-14 text-xl border-2 rounded-lg aspect-square" />
+    ));
+  };
+  
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/50">
       <Header />
@@ -111,14 +118,7 @@ const OTPVerification = () => {
                   onChange={(value) => setOtp(value)}
                   render={({ slots }) => (
                     <InputOTPGroup className="gap-3">
-                      {slots.map((slot, index) => (
-                        <InputOTPSlot 
-                          key={index} 
-                          {...slot} 
-                          index={index}
-                          className="w-12 h-14 text-xl border-2 rounded-lg aspect-square"
-                        />
-                      ))}
+                      {renderSlots()}
                     </InputOTPGroup>
                   )}
                 />
