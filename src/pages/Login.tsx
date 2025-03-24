@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import { Linkedin } from 'lucide-react';
+import { Linkedin, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { Provider } from '@supabase/supabase-js';
 
 const Login = () => {
@@ -60,28 +60,31 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/50">
       <Header />
       
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
-            <p className="text-gray-600">
+            <h1 className="text-4xl font-bold mb-3 text-gradient">Welcome back</h1>
+            <p className="text-muted-foreground text-lg">
               Log in to continue your professional networking journey
             </p>
           </div>
           
-          <div className="bg-white shadow-lg rounded-xl p-8">
+          <div className="bg-card border rounded-2xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20 animate-fade-in">
                   {error}
                 </div>
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email" className="text-base flex items-center gap-2">
+                  <Mail size={16} className="text-muted-foreground" />
+                  Email address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -89,13 +92,17 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   required
+                  className="h-12 text-base"
                 />
               </div>
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                  <Label htmlFor="password" className="text-base flex items-center gap-2">
+                    <Lock size={16} className="text-muted-foreground" />
+                    Password
+                  </Label>
+                  <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
                     Forgot password?
                   </Link>
                 </div>
@@ -106,33 +113,41 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••"
                   required
+                  className="h-12 text-base"
                 />
               </div>
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Log in'}
+              <Button type="submit" className="w-full h-12 text-base group" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                ) : (
+                  <>
+                    Log in
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </Button>
             </form>
             
-            <div className="mt-6">
+            <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">
+                  <span className="bg-card px-3 text-muted-foreground font-medium">
                     Or continue with
                   </span>
                 </div>
               </div>
               
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-6 grid grid-cols-2 gap-4">
                 <Button 
                   variant="outline" 
                   type="button" 
                   onClick={() => handleSocialLogin('google')}
                   disabled={isLoading}
-                  className="w-full"
+                  className="w-full h-12 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" className="mr-2">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -147,7 +162,7 @@ const Login = () => {
                   type="button" 
                   onClick={() => handleSocialLogin('linkedin_oidc')}
                   disabled={isLoading}
-                  className="w-full"
+                  className="w-full h-12 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <Linkedin className="mr-2 h-5 w-5 text-[#0A66C2]" />
                   LinkedIn
@@ -155,19 +170,21 @@ const Login = () => {
               </div>
             </div>
             
-            <div className="mt-6 text-center text-sm">
-              <p className="text-gray-600">
+            <div className="mt-8 text-center text-sm">
+              <p className="text-muted-foreground">
                 Don't have an account?{' '}
-                <Link to="/register" className="text-primary hover:underline">
+                <Link to="/register" className="text-primary hover:underline font-medium">
                   Sign up
                 </Link>
               </p>
             </div>
 
-            <div className="mt-8 pt-6 border-t text-center text-xs text-gray-500">
-              <p>Demo accounts:</p>
-              <p className="mt-1">Email: johndoe@example.com | Password: password123</p>
-              <p className="mt-1">Email: demo@example.com | Password: demo123</p>
+            <div className="mt-10 pt-6 border-t text-center text-xs text-muted-foreground">
+              <p className="font-medium">Demo accounts:</p>
+              <div className="mt-2 space-y-1 bg-muted/50 rounded-lg p-3">
+                <p>Email: johndoe@example.com | Password: password123</p>
+                <p>Email: demo@example.com | Password: demo123</p>
+              </div>
             </div>
           </div>
         </div>

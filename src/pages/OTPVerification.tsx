@@ -10,6 +10,7 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { useAuth } from '@/context/AuthContext';
+import { ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
 
 const OTPVerification = () => {
   const navigate = useNavigate();
@@ -89,29 +90,34 @@ const OTPVerification = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/50">
       <Header />
       
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Verify your account</h1>
-            <p className="text-gray-600">
-              Enter the 6-digit code sent to <span className="font-medium">{email}</span>
+            <h1 className="text-4xl font-bold mb-3 text-gradient">Verify your account</h1>
+            <p className="text-muted-foreground text-lg">
+              Enter the 6-digit code sent to <span className="font-medium text-foreground">{email}</span>
             </p>
           </div>
           
-          <div className="bg-white shadow-lg rounded-xl p-8">
-            <div className="space-y-6">
+          <div className="bg-card border rounded-2xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl">
+            <div className="space-y-8">
               <div className="flex justify-center">
                 <InputOTP
                   maxLength={6}
                   value={otp}
                   onChange={(value) => setOtp(value)}
                   render={({ slots }) => (
-                    <InputOTPGroup>
+                    <InputOTPGroup className="gap-3">
                       {slots.map((slot, index) => (
-                        <InputOTPSlot key={index} {...slot} index={index} />
+                        <InputOTPSlot 
+                          key={index} 
+                          {...slot} 
+                          index={index}
+                          className="w-12 h-14 text-xl border-2 rounded-lg aspect-square"
+                        />
                       ))}
                     </InputOTPGroup>
                   )}
@@ -120,27 +126,36 @@ const OTPVerification = () => {
               
               <Button 
                 onClick={handleVerifyOTP} 
-                className="w-full"
+                className="w-full h-12 text-base group"
                 disabled={isLoading || otp.length !== 6}
               >
-                {isLoading ? 'Verifying...' : 'Verify & Log in'}
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                ) : (
+                  <>
+                    Verify & Log in
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </Button>
               
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-sm text-muted-foreground mb-3">
                   Didn't receive a code?
                 </p>
                 {countdown > 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Resend code in {countdown} seconds
-                  </p>
+                  <div className="flex items-center justify-center text-sm space-x-2 text-muted-foreground">
+                    <RefreshCw size={16} className="animate-spin" />
+                    <span>Resend code in {countdown} seconds</span>
+                  </div>
                 ) : (
                   <Button 
-                    variant="link" 
+                    variant="outline" 
                     onClick={handleResendOTP} 
                     disabled={isLoading}
-                    className="text-sm"
+                    className="text-sm h-10"
                   >
+                    <RefreshCw size={16} className="mr-2" />
                     Resend code
                   </Button>
                 )}
