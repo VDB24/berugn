@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import { Apple, Github, Linkedin, X } from 'lucide-react';
+import { Linkedin } from 'lucide-react';
 import { Provider } from '@supabase/supabase-js';
 
 const Register = () => {
@@ -154,6 +154,7 @@ const Register = () => {
                   type="button" 
                   onClick={() => handleSocialLogin('google')}
                   disabled={isLoading}
+                  className="w-full"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" className="mr-2">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -168,27 +169,10 @@ const Register = () => {
                   type="button" 
                   onClick={() => handleSocialLogin('linkedin_oidc')}
                   disabled={isLoading}
+                  className="w-full"
                 >
                   <Linkedin className="mr-2 h-5 w-5 text-[#0A66C2]" />
                   LinkedIn
-                </Button>
-                <Button 
-                  variant="outline" 
-                  type="button" 
-                  onClick={() => handleSocialLogin('twitter')}
-                  disabled={isLoading}
-                >
-                  <X className="mr-2 h-5 w-5" />
-                  X
-                </Button>
-                <Button 
-                  variant="outline" 
-                  type="button" 
-                  onClick={() => handleSocialLogin('apple')}
-                  disabled={isLoading}
-                >
-                  <Apple className="mr-2 h-5 w-5" />
-                  Apple
                 </Button>
               </div>
             </div>
