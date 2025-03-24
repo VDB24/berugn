@@ -39,16 +39,10 @@ const Browse = () => {
   useEffect(() => {
     console.log(`Profiles loaded: ${potentialConnections.length}`);
     
-    // Always reset currentIndex to 0 when potentialConnections change
-    if (potentialConnections.length > 0) {
-      console.log('Setting current index to 0');
-      setCurrentIndex(0);
-    }
-    
     // Update profiles remaining
     setProfilesRemaining(potentialConnections.length);
     console.log(`Total profiles: ${potentialConnections.length}, currentIndex: ${currentIndex}`);
-  }, [potentialConnections]);
+  }, [potentialConnections, currentIndex]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
@@ -62,7 +56,7 @@ const Browse = () => {
 
   // Handle swipe action
   const handleSwipe = async (direction: 'left' | 'right') => {
-    if (currentIndex >= potentialConnections.length || potentialConnections.length === 0) {
+    if (potentialConnections.length === 0) {
       console.log("No profiles to swipe");
       return;
     }
@@ -100,8 +94,6 @@ const Browse = () => {
         });
       }
       
-      // If we've reached the end of the available profiles, reset the index
-      // The useEffect will update profilesRemaining
     } catch (error) {
       console.error("Swipe error:", error);
       toast({
@@ -150,7 +142,7 @@ const Browse = () => {
   };
 
   // Display the current profile being viewed
-  const currentProfile = potentialConnections.length > 0 ? potentialConnections[currentIndex] : null;
+  const currentProfile = potentialConnections.length > currentIndex ? potentialConnections[currentIndex] : null;
   console.log("Current profile:", currentProfile?.id, currentProfile?.name);
 
   return (
