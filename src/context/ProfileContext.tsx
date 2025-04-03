@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -462,15 +461,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
-    console.log(`Swiped profile ${profileId} ${direction}`);
-    
     // Remove the swiped profile from the list immediately
-    setPotentialConnections(prev => prev.filter(p => p.id !== profileId));
+    setPotentialConnections(prevConnections => {
+      const updatedConnections = prevConnections.filter(p => p.id !== profileId);
+      console.log(`Profiles remaining after swipe: ${updatedConnections.length}`);
+      return updatedConnections;
+    });
     
-    // Log remaining profiles after the update
-    console.log(`Profiles remaining after swipe: ${potentialConnections.length - 1}`);
-    
-    // Check if we need to load more profiles
+    // Load more profiles if running low
     if (potentialConnections.length < 3) {
       console.log("Running low on profiles, loading more...");
       await loadMoreProfiles();
@@ -491,8 +489,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const loadMoreProfiles = async () => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     console.log("Loading more profiles...");
     
     // Combine all profiles and filter out swiped ones and current user
@@ -501,8 +497,15 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
     
+    // Update both arrays atomically
     setAllProfiles(availableProfiles);
-    setPotentialConnections(availableProfiles);
+    setPotentialConnections(prevConnections => {
+      // Filter out profiles that are already in the list
+      const newProfiles = availableProfiles.filter(
+        newProfile => !prevConnections.some(existing => existing.id === newProfile.id)
+      );
+      return [...prevConnections, ...newProfiles];
+    });
   };
 
   const value = {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -15,7 +14,6 @@ const Browse = () => {
   const { potentialConnections, swipeProfile, loadMoreProfiles } = useProfile();
   const { toast } = useToast();
   
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dailyLimit, setDailyLimit] = useState({ total: 20, remaining: 20 });
@@ -37,12 +35,15 @@ const Browse = () => {
   }, []);
 
   useEffect(() => {
-    console.log(`Profiles loaded: ${potentialConnections.length}`);
-    
-    // Update profiles remaining
+    // Update profiles remaining whenever potentialConnections changes
     setProfilesRemaining(potentialConnections.length);
-    console.log(`Total profiles: ${potentialConnections.length}, currentIndex: ${currentIndex}`);
-  }, [potentialConnections, currentIndex]);
+    console.log(`Total profiles: ${potentialConnections.length}`);
+    
+    // Load more profiles if running low
+    if (potentialConnections.length < 3) {
+      loadMoreProfiles();
+    }
+  }, [potentialConnections, loadMoreProfiles]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
@@ -80,7 +81,7 @@ const Browse = () => {
     
     try {
       // Get current profile being swiped
-      const profile = potentialConnections[currentIndex];
+      const profile = potentialConnections[0];
       console.log(`Swiping profile: ${profile.id}, ${profile.name}`);
       
       // Process swipe
@@ -93,9 +94,6 @@ const Browse = () => {
           description: `You've requested to connect with ${profile.name}`,
         });
       }
-      
-      // Don't update the currentIndex here since the profile array is being modified in swipeProfile
-      // Instead, the array gets smaller, and index 0 is now the next profile
       
     } catch (error) {
       console.error("Swipe error:", error);
@@ -144,8 +142,8 @@ const Browse = () => {
     }
   };
 
-  // Display the current profile being viewed - always use index 0 since we're removing profiles from the array
-  const currentProfile = potentialConnections.length > 0 ? potentialConnections[0] : null;
+  // Always use the first profile in the array
+  const currentProfile = potentialConnections[0] || null;
   console.log("Current profile:", currentProfile?.id, currentProfile?.name);
 
   return (
