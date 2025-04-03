@@ -45,6 +45,12 @@ const DEMO_USERS = [
 // Mock OTP storage
 const MOCK_OTP_STORE: Record<string, string> = {};
 
+// Expose MOCK_OTP_STORE for demonstration purposes (in development only)
+if (process.env.NODE_ENV !== 'production') {
+  // @ts-ignore - Adding to window for demo purposes
+  window.MOCK_OTP_STORE = MOCK_OTP_STORE;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
