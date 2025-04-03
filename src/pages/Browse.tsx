@@ -94,6 +94,9 @@ const Browse = () => {
         });
       }
       
+      // Don't update the currentIndex here since the profile array is being modified in swipeProfile
+      // Instead, the array gets smaller, and index 0 is now the next profile
+      
     } catch (error) {
       console.error("Swipe error:", error);
       toast({
@@ -141,8 +144,8 @@ const Browse = () => {
     }
   };
 
-  // Display the current profile being viewed
-  const currentProfile = potentialConnections.length > currentIndex ? potentialConnections[currentIndex] : null;
+  // Display the current profile being viewed - always use index 0 since we're removing profiles from the array
+  const currentProfile = potentialConnections.length > 0 ? potentialConnections[0] : null;
   console.log("Current profile:", currentProfile?.id, currentProfile?.name);
 
   return (

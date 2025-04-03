@@ -464,14 +464,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     console.log(`Swiped profile ${profileId} ${direction}`);
     
-    // Remove the swiped profile from the list
-    const updatedConnections = potentialConnections.filter(p => p.id !== profileId);
-    setPotentialConnections(updatedConnections);
+    // Remove the swiped profile from the list immediately
+    setPotentialConnections(prev => prev.filter(p => p.id !== profileId));
     
-    console.log(`Profiles remaining after swipe: ${updatedConnections.length}`);
+    // Log remaining profiles after the update
+    console.log(`Profiles remaining after swipe: ${potentialConnections.length - 1}`);
     
     // Check if we need to load more profiles
-    if (updatedConnections.length < 3) {
+    if (potentialConnections.length < 3) {
       console.log("Running low on profiles, loading more...");
       await loadMoreProfiles();
     }
