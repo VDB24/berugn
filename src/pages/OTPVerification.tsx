@@ -29,9 +29,9 @@ const OTPVerification = () => {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Email not provided. Please go back to login.',
+        description: 'Email not provided. Please go back to sign up.',
       });
-      navigate('/login');
+      navigate('/register');
       return;
     }
     
@@ -59,10 +59,10 @@ const OTPVerification = () => {
     try {
       await verifyOTP(email, otp);
       toast({
-        title: 'Verification successful',
-        description: 'You have been logged in successfully.',
+        title: 'Account created successfully',
+        description: 'Welcome to SwipeConnect! Let\'s set up your profile.',
       });
-      navigate('/browse');
+      navigate('/create-profile');
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -131,7 +131,7 @@ const OTPVerification = () => {
                   <Loader2 className="h-5 w-5 animate-spin mr-2" />
                 ) : (
                   <>
-                    Verify & Log in
+                    Complete Sign Up
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}

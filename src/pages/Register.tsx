@@ -43,10 +43,11 @@ const Register = () => {
     try {
       await register(email, password);
       toast({
-        title: 'Account created',
-        description: 'Welcome to SwipeConnect! Let\'s set up your profile.',
+        title: 'Verification required',
+        description: 'A verification code has been sent to your email.',
       });
-      navigate('/create-profile');
+      // Redirect to OTP verification page with email in state
+      navigate('/verify-otp', { state: { email } });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
       setError(errorMessage);

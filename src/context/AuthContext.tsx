@@ -71,6 +71,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Invalid email or password');
       }
       
+      // Create a user object without the password
+      const { password: _, ...userWithoutPassword } = user;
+      
+      // Save to state and localStorage
+      setCurrentUser(userWithoutPassword);
+      localStorage.setItem('swipe_connect_user', JSON.stringify(userWithoutPassword));
+      
+      return Promise.resolve();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if user already exists
+      if (DEMO_USERS.some(u => u.email === email)) {
+        throw new Error('Email already in use');
+      }
+      
       // Generate a random 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       
@@ -80,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // In a real app, you would send this OTP to the user's email
       console.log(`OTP for ${email}: ${otp}`);
       
-      // Don't set the user yet - require OTP verification first
+      // Don't create the user yet - require OTP verification first
       return Promise.resolve();
     } catch (error) {
       throw error;
@@ -102,19 +128,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clear OTP after successful verification
       delete MOCK_OTP_STORE[email];
       
-      // Find user with matching email
-      const user = DEMO_USERS.find(u => u.email === email);
+      // Find or create user with matching email
+      const existingUser = DEMO_USERS.find(u => u.email === email);
       
-      if (!user) {
-        throw new Error('User not found');
+      if (existingUser) {
+        // User exists, this is a login verification
+        const { password: _, ...userWithoutPassword } = existingUser;
+        
+        // Save to state and localStorage
+        setCurrentUser(userWithoutPassword);
+        localStorage.setItem('swipe_connect_user', JSON.stringify(userWithoutPassword));
+      } else {
+        // Create new user (for registration)
+        const newUser = {
+          id: `${DEMO_USERS.length + 1}`,
+          email,
+          profileCompleted: false
+        };
+        
+        // In a real app, we would add the user to the database here
+        
+        // Save to state and localStorage
+        setCurrentUser(newUser);
+        localStorage.setItem('swipe_connect_user', JSON.stringify(newUser));
       }
-      
-      // Create a user object without the password
-      const { password: _, ...userWithoutPassword } = user;
-      
-      // Save to state and localStorage
-      setCurrentUser(userWithoutPassword);
-      localStorage.setItem('swipe_connect_user', JSON.stringify(userWithoutPassword));
       
       return Promise.resolve();
     } catch (error) {
@@ -129,13 +166,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Check if email exists
-      const user = DEMO_USERS.find(u => u.email === email);
-      
-      if (!user) {
-        throw new Error('User not found');
-      }
-      
       // Generate a new random 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       
@@ -146,36 +176,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log(`New OTP for ${email}: ${otp}`);
       
       return Promise.resolve();
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const register = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user already exists
-      if (DEMO_USERS.some(u => u.email === email)) {
-        throw new Error('Email already in use');
-      }
-      
-      // Create new user
-      const newUser = {
-        id: `${DEMO_USERS.length + 1}`,
-        email,
-        profileCompleted: false
-      };
-      
-      // In a real app, we would add the user to the database here
-      
-      // Save to state and localStorage
-      setCurrentUser(newUser);
-      localStorage.setItem('swipe_connect_user', JSON.stringify(newUser));
     } catch (error) {
       throw error;
     } finally {
