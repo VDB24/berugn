@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 210 100% 50%;
+    --primary: 222 84% 48%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 270 76% 53%;
@@ -48,8 +49,8 @@
     --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 213 80% 60%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 270 76% 53%;
     --secondary-foreground: 210 40% 98%;
@@ -89,7 +90,11 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl;
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-md;
+  }
+  
+  .glass-card {
+    @apply bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg border border-white/30 dark:border-white/10 shadow-xl rounded-2xl;
   }
   
   .text-balance {
@@ -98,6 +103,14 @@
 
   .text-gradient {
     @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+  }
+  
+  .premium-shadow {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .premium-card {
+    @apply rounded-2xl border bg-card shadow-md transition-all duration-300 hover:shadow-lg;
   }
 }
 
@@ -118,10 +131,14 @@
 
 .card-hover:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.15);
 }
 
 .header-blur {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.premium-button {
+  @apply relative overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg before:absolute before:w-full before:h-full before:left-0 before:top-0 before:bg-white/10 before:scale-x-0 before:origin-right hover:before:scale-x-100 hover:before:origin-left before:transition-transform before:duration-300;
 }
