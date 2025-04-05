@@ -1,3 +1,5 @@
+// We're keeping this file for potential future use, but simplifying it
+// since we're now only using button-based swipes
 
 type Direction = 'left' | 'right' | 'up' | 'down';
 

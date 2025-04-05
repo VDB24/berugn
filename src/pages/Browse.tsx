@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -169,7 +170,7 @@ const Browse = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Discover Professionals</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Swipe right to connect, left to pass
+            Find and connect with professionals in your field
           </p>
           
           {/* Daily limit indicator */}
