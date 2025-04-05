@@ -1,58 +1,39 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { 
-  Briefcase, 
-  Users, 
-  MessageSquare, 
-  Filter, 
-  Bell, 
-  Shield, 
-  ArrowRight,
-  CheckCircle2
-} from 'lucide-react';
+import { Briefcase, Users, MessageSquare, Filter, Bell, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
 const Features = () => {
-  const { currentUser } = useAuth();
-
-  const features = [
-    {
-      icon: <Briefcase className="h-8 w-8 text-primary" />,
-      title: "Professional Profiles",
-      description: "Create a detailed profile showcasing your professional experience, skills, and career goals to attract the right connections."
-    },
-    {
-      icon: <Users className="h-8 w-8 text-primary" />,
-      title: "Intuitive Matching",
-      description: "Our card-swiping interface makes it easy to browse potential connections - swipe right to connect, left to pass."
-    },
-    {
-      icon: <MessageSquare className="h-8 w-8 text-primary" />,
-      title: "Direct Messaging",
-      description: "Once matched, communicate directly with your new connections to establish a professional relationship."
-    },
-    {
-      icon: <Filter className="h-8 w-8 text-primary" />,
-      title: "Advanced Filters",
-      description: "Set preferences for industry, experience level, location, and more to find the most relevant connections."
-    },
-    {
-      icon: <Bell className="h-8 w-8 text-primary" />,
-      title: "Smart Notifications",
-      description: "Stay updated with timely alerts about new matches, messages, and network opportunities."
-    },
-    {
-      icon: <Shield className="h-8 w-8 text-primary" />,
-      title: "Privacy Controls",
-      description: "Robust privacy settings let you control who sees your profile and how much information is shared."
-    }
-  ];
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  const {
+    currentUser
+  } = useAuth();
+  const features = [{
+    icon: <Briefcase className="h-8 w-8 text-primary" />,
+    title: "Professional Profiles",
+    description: "Create a detailed profile showcasing your professional experience, skills, and career goals to attract the right connections."
+  }, {
+    icon: <Users className="h-8 w-8 text-primary" />,
+    title: "Intuitive Matching",
+    description: "Our card-swiping interface makes it easy to browse potential connections - swipe right to connect, left to pass."
+  }, {
+    icon: <MessageSquare className="h-8 w-8 text-primary" />,
+    title: "Direct Messaging",
+    description: "Once matched, communicate directly with your new connections to establish a professional relationship."
+  }, {
+    icon: <Filter className="h-8 w-8 text-primary" />,
+    title: "Advanced Filters",
+    description: "Set preferences for industry, experience level, location, and more to find the most relevant connections."
+  }, {
+    icon: <Bell className="h-8 w-8 text-primary" />,
+    title: "Smart Notifications",
+    description: "Stay updated with timely alerts about new matches, messages, and network opportunities."
+  }, {
+    icon: <Shield className="h-8 w-8 text-primary" />,
+    title: "Privacy Controls",
+    description: "Robust privacy settings let you control who sees your profile and how much information is shared."
+  }];
+  return <div className="min-h-screen flex flex-col">
       <Header />
       
       {/* Hero section */}
@@ -64,9 +45,7 @@ const Features = () => {
                 Features that make networking <span className="text-gradient">effortless</span>
               </h1>
               
-              <p className="text-muted-foreground md:text-xl">
-                SyncIn offers a comprehensive set of tools designed to revolutionize your professional networking experience.
-              </p>
+              <p className="text-muted-foreground md:text-xl">Berugn offers a comprehensive set of tools designed to revolutionize your professional networking experience.</p>
               
               <div className="space-y-3 pt-4">
                 <div className="flex items-center gap-2">
@@ -84,21 +63,17 @@ const Features = () => {
               </div>
               
               <div className="pt-4">
-                {currentUser ? (
-                  <Link to="/browse">
+                {currentUser ? <Link to="/browse">
                     <Button size="lg" className="gap-2">
                       Start browsing
                       <ArrowRight size={16} />
                     </Button>
-                  </Link>
-                ) : (
-                  <Link to="/register">
+                  </Link> : <Link to="/register">
                     <Button size="lg" className="gap-2">
                       Try it free
                       <ArrowRight size={16} />
                     </Button>
-                  </Link>
-                )}
+                  </Link>}
               </div>
             </div>
             <div className="rounded-xl bg-card p-8 shadow-lg border">
@@ -121,8 +96,7 @@ const Features = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="flex flex-col p-6 rounded-xl bg-card shadow-sm border">
+            {features.map((feature, index) => <div key={index} className="flex flex-col p-6 rounded-xl bg-card shadow-sm border">
                 <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                   {feature.icon}
                 </div>
@@ -130,8 +104,7 @@ const Features = () => {
                 <p className="text-muted-foreground text-sm flex-1">
                   {feature.description}
                 </p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -198,21 +171,17 @@ const Features = () => {
               Join thousands of professionals who are building meaningful connections on SyncIn.
             </p>
             
-            {currentUser ? (
-              <Link to="/browse">
+            {currentUser ? <Link to="/browse">
                 <Button size="lg" className="gap-2">
                   Start browsing
                   <ArrowRight size={16} />
                 </Button>
-              </Link>
-            ) : (
-              <Link to="/register">
+              </Link> : <Link to="/register">
                 <Button size="lg" className="gap-2">
                   Sign up free
                   <ArrowRight size={16} />
                 </Button>
-              </Link>
-            )}
+              </Link>}
           </div>
         </div>
       </section>
@@ -242,8 +211,6 @@ const Features = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Features;
