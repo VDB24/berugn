@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 interface Skill {
@@ -360,6 +360,49 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
 
+  // Make loadMoreProfiles a useCallback to prevent recreation on each render
+  const loadMoreProfiles = useCallback(async () => {
+    if (!currentUser) throw new Error('No user is logged in');
+    if (isLoadingProfiles) {
+      console.log("Already loading profiles, skipping request");
+      return;
+    }
+
+    try {
+      setIsLoadingProfiles(true);
+      console.log("Loading more profiles...");
+      
+      // Create a combined pool of all available profiles
+      const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
+        .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
+      
+      console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
+      
+      // Update allProfiles state
+      setAllProfiles(availableProfiles);
+      
+      // Update potentialConnections, ensuring no duplicates
+      setPotentialConnections(prevConnections => {
+        // Get IDs of current profiles to avoid duplicates
+        const existingIds = new Set(prevConnections.map(p => p.id));
+        
+        // Filter out profiles that are already in the list
+        const newProfiles = availableProfiles.filter(p => !existingIds.has(p.id));
+        console.log(`Adding ${newProfiles.length} new profiles to existing ${prevConnections.length}`);
+        
+        // Always return a new array to ensure component re-renders
+        return [...prevConnections, ...newProfiles];
+      });
+
+      return availableProfiles.length;
+    } catch (error) {
+      console.error("Error loading profiles:", error);
+      return 0;
+    } finally {
+      setIsLoadingProfiles(false);
+    }
+  }, [currentUser, isLoadingProfiles, swipedProfileIds]);
+
   useEffect(() => {
     if (currentUser) {
       const profile = DEMO_PROFILES.find(p => p.userId === currentUser.id);
@@ -374,11 +417,16 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       const savedSwipedIds = localStorage.getItem(`swipe_connect_swiped_${currentUser.id}`);
       if (savedSwipedIds) {
-        const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
-        setSwipedProfileIds(parsedIds);
-        // Filter out already swiped profiles
-        const filteredConnections = connections.filter(p => !parsedIds.has(p.id));
-        setPotentialConnections(filteredConnections);
+        try {
+          const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
+          setSwipedProfileIds(parsedIds);
+          // Filter out already swiped profiles
+          const filteredConnections = connections.filter(p => !parsedIds.has(p.id));
+          setPotentialConnections(filteredConnections);
+        } catch (error) {
+          console.error("Error parsing saved swiped IDs:", error);
+          setPotentialConnections(connections);
+        }
       } else {
         setPotentialConnections(connections);
       }
@@ -437,7 +485,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     try {
       // Add profile to swiped IDs
-      const newSwipedIds = new Set<string>(swipedProfileIds);
+      const newSwipedIds = new Set(swipedProfileIds);
       newSwipedIds.add(profileId);
       setSwipedProfileIds(newSwipedIds);
       
@@ -481,9 +529,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.log(`Removed profile ${profileId} from potentialConnections`);
         console.log(`Profiles remaining: ${updatedConnections.length}`);
         
-        // If we're running low on profiles, load more
-        if (updatedConnections.length < 3 && !isLoadingProfiles) {
-          console.log("Running low on profiles, loading more...");
+        // If we're running low on profiles, load more immediately
+        if (updatedConnections.length < 3) {
+          console.log("Running low on profiles, loading more immediately...");
           loadMoreProfiles();
         }
         

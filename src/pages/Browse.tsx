@@ -20,6 +20,7 @@ const Browse = () => {
   const [dailyLimit, setDailyLimit] = useState({ total: 20, remaining: 20 });
   const [profilesRemaining, setProfilesRemaining] = useState(0);
 
+  // Initial load effect
   useEffect(() => {
     // Simulate loading delay
     const timer = setTimeout(() => {
@@ -28,7 +29,11 @@ const Browse = () => {
       // Get daily limit from localStorage or set default
       const savedLimit = localStorage.getItem('swipe_connect_daily_limit');
       if (savedLimit) {
-        setDailyLimit(JSON.parse(savedLimit));
+        try {
+          setDailyLimit(JSON.parse(savedLimit));
+        } catch (error) {
+          console.error("Error parsing saved limit:", error);
+        }
       }
     }, 1000); // Reduced delay for better user experience
     
@@ -44,7 +49,9 @@ const Browse = () => {
     // Load more profiles if running low, but avoid loading on initial render
     if (potentialConnections.length < 3 && !isLoading) {
       console.log("Running low on profiles, loading more from effect...");
-      loadMoreProfiles();
+      loadMoreProfiles()
+        .then(() => console.log("Successfully loaded more profiles"))
+        .catch(error => console.error("Failed to load more profiles:", error));
     }
   }, [potentialConnections, loadMoreProfiles, isLoading]);
 
