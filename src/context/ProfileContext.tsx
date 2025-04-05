@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -223,7 +222,6 @@ const DEMO_PROFILES: Profile[] = [
   }
 ];
 
-// Additional profiles to load when refreshing
 const ADDITIONAL_PROFILES: Profile[] = [
   {
     id: '11',
@@ -360,7 +358,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
 
-  // Make loadMoreProfiles a useCallback to prevent recreation on each render
   const loadMoreProfiles = useCallback(async () => {
     if (!currentUser) throw new Error('No user is logged in');
     if (isLoadingProfiles) {
@@ -372,32 +369,27 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoadingProfiles(true);
       console.log("Loading more profiles...");
       
-      // Create a combined pool of all available profiles
       const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
         .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
       
       console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
       
-      // Update allProfiles state
       setAllProfiles(availableProfiles);
       
-      // Update potentialConnections, ensuring no duplicates
       setPotentialConnections(prevConnections => {
-        // Get IDs of current profiles to avoid duplicates
+        if (prevConnections.length === 0) {
+          return availableProfiles;
+        }
+        
         const existingIds = new Set(prevConnections.map(p => p.id));
         
-        // Filter out profiles that are already in the list
         const newProfiles = availableProfiles.filter(p => !existingIds.has(p.id));
         console.log(`Adding ${newProfiles.length} new profiles to existing ${prevConnections.length}`);
         
-        // Always return a new array to ensure component re-renders
         return [...prevConnections, ...newProfiles];
       });
-
-      return availableProfiles.length;
     } catch (error) {
       console.error("Error loading profiles:", error);
-      return 0;
     } finally {
       setIsLoadingProfiles(false);
     }
@@ -411,7 +403,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setUserProfile(profile);
       }
 
-      // Load the initial profiles, filtering out the current user
       const connections = DEMO_PROFILES.filter(p => p.userId !== currentUser.id);
       setAllProfiles(connections);
       
@@ -420,7 +411,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
           const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
           setSwipedProfileIds(parsedIds);
-          // Filter out already swiped profiles
           const filteredConnections = connections.filter(p => !parsedIds.has(p.id));
           setPotentialConnections(filteredConnections);
         } catch (error) {
@@ -484,15 +474,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     console.log(`Starting swipe for profile ${profileId} in direction ${direction}`);
     
     try {
-      // Add profile to swiped IDs
       const newSwipedIds = new Set(swipedProfileIds);
       newSwipedIds.add(profileId);
       setSwipedProfileIds(newSwipedIds);
       
-      // Save to localStorage
       localStorage.setItem(`swipe_connect_swiped_${currentUser.id}`, JSON.stringify([...newSwipedIds]));
 
-      // Handle right swipe (potential match)
       if (direction === 'right') {
         const newConnection: Connection = {
           id: `connection_${Date.now()}`,
@@ -502,7 +489,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           createdAt: new Date().toISOString()
         };
 
-        // 30% chance to match
         if (Math.random() > 0.7) {
           newConnection.status = 'connected';
           
@@ -512,9 +498,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
       
-      // Update the potentialConnections state immediately to show next profile
       setPotentialConnections(prevConnections => {
-        // Get the swiped profile's index
         const swipedProfileIndex = prevConnections.findIndex(p => p.id === profileId);
         
         if (swipedProfileIndex === -1) {
@@ -522,14 +506,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           return prevConnections;
         }
         
-        // Create a new array without the swiped profile
         const updatedConnections = [...prevConnections];
         updatedConnections.splice(swipedProfileIndex, 1);
         
         console.log(`Removed profile ${profileId} from potentialConnections`);
         console.log(`Profiles remaining: ${updatedConnections.length}`);
         
-        // If we're running low on profiles, load more immediately
         if (updatedConnections.length < 3) {
           console.log("Running low on profiles, loading more immediately...");
           loadMoreProfiles();
@@ -554,50 +536,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem(`swipe_connect_preferences_${currentUser.id}`, JSON.stringify(updatedPreferences));
   };
 
-  const loadMoreProfiles = async () => {
-    if (!currentUser) throw new Error('No user is logged in');
-    if (isLoadingProfiles) {
-      console.log("Already loading profiles, skipping request");
-      return;
-    }
-
-    try {
-      setIsLoadingProfiles(true);
-      console.log("Loading more profiles...");
-      
-      // Combine all profiles and filter out swiped ones and current user
-      const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
-        .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
-      
-      console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
-      
-      // Update allProfiles state
-      setAllProfiles(availableProfiles);
-      
-      // Update potentialConnections, ensuring no duplicates
-      setPotentialConnections(prevConnections => {
-        if (prevConnections.length === 0) {
-          // If there are no connections, simply return all available profiles
-          return availableProfiles;
-        }
-        
-        // Get IDs of current profiles to avoid duplicates
-        const existingIds = new Set(prevConnections.map(p => p.id));
-        
-        // Filter out profiles that are already in the list
-        const newProfiles = availableProfiles.filter(p => !existingIds.has(p.id));
-        console.log(`Adding ${newProfiles.length} new profiles to existing ${prevConnections.length}`);
-        
-        return [...prevConnections, ...newProfiles];
-      });
-    } catch (error) {
-      console.error("Error loading profiles:", error);
-    } finally {
-      setIsLoadingProfiles(false);
-    }
-  };
-
-  const value = {
+  const value: ProfileContextType = {
     userProfile,
     potentialConnections,
     matches,
