@@ -28,7 +28,7 @@ const Index = () => {
             </h1>
             
             <p className="text-muted-foreground md:text-xl max-w-[700px] mt-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              SyncIn helps you discover valuable professional connections through an intuitive card-swiping interface.
+              Berugn helps you discover valuable professional connections through an intuitive card-swiping interface.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
@@ -158,7 +158,7 @@ const Index = () => {
               Ready to build your professional network?
             </h2>
             <p className="text-muted-foreground md:text-xl mb-10 max-w-[600px]">
-              Join SyncIn today and discover connections that can help advance your career.
+              Join Berugn today and discover connections that can help advance your career.
             </p>
             
             {currentUser ? (
@@ -184,7 +184,7 @@ const Index = () => {
       <footer className="border-t py-12 mt-auto bg-card/50">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-4">SyncIn</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-4">Berugn</span>
             <p className="text-sm text-muted-foreground mb-6">
               Professional networking reimagined
             </p>
@@ -203,7 +203,7 @@ const Index = () => {
               </Link>
             </div>
             <div className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} SyncIn. All rights reserved.
+              © {new Date().getFullYear()} Berugn. All rights reserved.
             </div>
           </div>
         </div>

@@ -100,6 +100,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </span>
             </div>
           )}
+          
+          {/* Berugn branding watermark */}
+          <div className="absolute bottom-2 right-2 text-xs font-semibold bg-black/20 text-white px-2 py-1 rounded-full backdrop-blur-sm">
+            Berugn
+          </div>
         </div>
 
         {/* Profile info */}

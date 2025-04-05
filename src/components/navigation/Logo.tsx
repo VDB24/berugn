@@ -9,7 +9,7 @@ const Logo = () => {
         <Infinity className="h-7 w-7 text-primary" />
         <div className="absolute -inset-1.5 blur-md bg-primary/30 rounded-full -z-10 opacity-70 group-hover:opacity-100 transition-opacity"></div>
       </div>
-      <span className="text-2xl font-bold text-gradient">SyncIn</span>
+      <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">Berugn</span>
     </Link>
   );
 };
