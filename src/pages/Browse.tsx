@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -29,21 +30,23 @@ const Browse = () => {
       if (savedLimit) {
         setDailyLimit(JSON.parse(savedLimit));
       }
-    }, 1500);
+    }, 1000); // Reduced delay for better user experience
     
     return () => clearTimeout(timer);
   }, []);
 
+  // This effect will run whenever potentialConnections changes
   useEffect(() => {
     // Update profiles remaining whenever potentialConnections changes
     setProfilesRemaining(potentialConnections.length);
-    console.log(`Total profiles: ${potentialConnections.length}`);
+    console.log(`Total profiles available: ${potentialConnections.length}`);
     
-    // Load more profiles if running low
-    if (potentialConnections.length < 3) {
+    // Load more profiles if running low, but avoid loading on initial render
+    if (potentialConnections.length < 3 && !isLoading) {
+      console.log("Running low on profiles, loading more from effect...");
       loadMoreProfiles();
     }
-  }, [potentialConnections, loadMoreProfiles]);
+  }, [potentialConnections, loadMoreProfiles, isLoading]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
@@ -80,11 +83,17 @@ const Browse = () => {
     }));
     
     try {
-      // Get current profile being swiped
+      // Get the first profile in the array - always use index 0
       const profile = potentialConnections[0];
+      
+      if (!profile) {
+        console.error("No profile available to swipe");
+        return;
+      }
+      
       console.log(`Swiping profile: ${profile.id}, ${profile.name}`);
       
-      // Process swipe
+      // Process swipe - this will update potentialConnections in the context
       await swipeProfile(profile.id, direction);
       
       // Show toast for right swipe (connect)
@@ -144,7 +153,7 @@ const Browse = () => {
 
   // Always use the first profile in the array
   const currentProfile = potentialConnections[0] || null;
-  console.log("Current profile:", currentProfile?.id, currentProfile?.name);
+  console.log("Current profile displayed:", currentProfile?.id, currentProfile?.name);
 
   return (
     <div className="min-h-screen flex flex-col">

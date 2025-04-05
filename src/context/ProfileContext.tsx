@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -357,6 +358,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
+  const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -430,48 +432,66 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const swipeProfile = async (profileId: string, direction: 'left' | 'right') => {
     if (!currentUser) throw new Error('No user is logged in');
-
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Add profile to swiped IDs
-    const newSwipedIds = new Set(swipedProfileIds);
-    newSwipedIds.add(profileId);
-    setSwipedProfileIds(newSwipedIds);
     
-    // Save to localStorage
-    localStorage.setItem(`swipe_connect_swiped_${currentUser.id}`, JSON.stringify([...newSwipedIds]));
+    console.log(`Starting swipe for profile ${profileId} in direction ${direction}`);
+    
+    try {
+      // Add profile to swiped IDs
+      const newSwipedIds = new Set(swipedProfileIds);
+      newSwipedIds.add(profileId);
+      setSwipedProfileIds(newSwipedIds);
+      
+      // Save to localStorage
+      localStorage.setItem(`swipe_connect_swiped_${currentUser.id}`, JSON.stringify([...newSwipedIds]));
 
-    // Handle right swipe (potential match)
-    if (direction === 'right') {
-      const newConnection: Connection = {
-        id: `connection_${Date.now()}`,
-        userId: currentUser.id,
-        connectedUserId: profileId,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
+      // Handle right swipe (potential match)
+      if (direction === 'right') {
+        const newConnection: Connection = {
+          id: `connection_${Date.now()}`,
+          userId: currentUser.id,
+          connectedUserId: profileId,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        };
 
-      // 30% chance to match
-      if (Math.random() > 0.7) {
-        newConnection.status = 'connected';
-        
-        const updatedMatches = [...matches, newConnection];
-        setMatches(updatedMatches);
-        localStorage.setItem(`swipe_connect_matches_${currentUser.id}`, JSON.stringify(updatedMatches));
+        // 30% chance to match
+        if (Math.random() > 0.7) {
+          newConnection.status = 'connected';
+          
+          const updatedMatches = [...matches, newConnection];
+          setMatches(updatedMatches);
+          localStorage.setItem(`swipe_connect_matches_${currentUser.id}`, JSON.stringify(updatedMatches));
+        }
       }
-    }
-
-    // Remove the swiped profile from the list immediately
-    setPotentialConnections(prevConnections => {
-      const updatedConnections = prevConnections.filter(p => p.id !== profileId);
-      console.log(`Profiles remaining after swipe: ${updatedConnections.length}`);
-      return updatedConnections;
-    });
-    
-    // Load more profiles if running low
-    if (potentialConnections.length < 3) {
-      console.log("Running low on profiles, loading more...");
-      await loadMoreProfiles();
+      
+      // IMPORTANT: Update the potentialConnections state immediately to show next profile
+      setPotentialConnections(prevConnections => {
+        // Get the swiped profile's index
+        const swipedProfileIndex = prevConnections.findIndex(p => p.id === profileId);
+        
+        if (swipedProfileIndex === -1) {
+          console.error(`Profile ${profileId} not found in potentialConnections`);
+          return prevConnections;
+        }
+        
+        // Create a new array without the swiped profile
+        const updatedConnections = [...prevConnections];
+        updatedConnections.splice(swipedProfileIndex, 1);
+        
+        console.log(`Removed profile ${profileId} from potentialConnections`);
+        console.log(`Profiles remaining: ${updatedConnections.length}`);
+        
+        // If we're running low on profiles, load more
+        if (updatedConnections.length < 3 && !isLoadingProfiles) {
+          console.log("Running low on profiles, loading more...");
+          loadMoreProfiles();
+        }
+        
+        return updatedConnections;
+      });
+    } catch (error) {
+      console.error("Error during swipe operation:", error);
+      throw error;
     }
   };
 
@@ -488,24 +508,45 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const loadMoreProfiles = async () => {
     if (!currentUser) throw new Error('No user is logged in');
+    if (isLoadingProfiles) {
+      console.log("Already loading profiles, skipping request");
+      return;
+    }
 
-    console.log("Loading more profiles...");
-    
-    // Combine all profiles and filter out swiped ones and current user
-    const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
-      .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
-    
-    console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
-    
-    // Update both arrays atomically
-    setAllProfiles(availableProfiles);
-    setPotentialConnections(prevConnections => {
-      // Filter out profiles that are already in the list
-      const newProfiles = availableProfiles.filter(
-        newProfile => !prevConnections.some(existing => existing.id === newProfile.id)
-      );
-      return [...prevConnections, ...newProfiles];
-    });
+    try {
+      setIsLoadingProfiles(true);
+      console.log("Loading more profiles...");
+      
+      // Combine all profiles and filter out swiped ones and current user
+      const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
+        .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
+      
+      console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
+      
+      // Update allProfiles state
+      setAllProfiles(availableProfiles);
+      
+      // Update potentialConnections, ensuring no duplicates
+      setPotentialConnections(prevConnections => {
+        if (prevConnections.length === 0) {
+          // If there are no connections, simply return all available profiles
+          return availableProfiles;
+        }
+        
+        // Get IDs of current profiles to avoid duplicates
+        const existingIds = new Set(prevConnections.map(p => p.id));
+        
+        // Filter out profiles that are already in the list
+        const newProfiles = availableProfiles.filter(p => !existingIds.has(p.id));
+        console.log(`Adding ${newProfiles.length} new profiles to existing ${prevConnections.length}`);
+        
+        return [...prevConnections, ...newProfiles];
+      });
+    } catch (error) {
+      console.error("Error loading profiles:", error);
+    } finally {
+      setIsLoadingProfiles(false);
+    }
   };
 
   const value = {
