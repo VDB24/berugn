@@ -374,7 +374,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       const savedSwipedIds = localStorage.getItem(`swipe_connect_swiped_${currentUser.id}`);
       if (savedSwipedIds) {
-        const parsedIds = new Set(JSON.parse(savedSwipedIds));
+        const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
         setSwipedProfileIds(parsedIds);
         // Filter out already swiped profiles
         const filteredConnections = connections.filter(p => !parsedIds.has(p.id));
@@ -437,7 +437,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     try {
       // Add profile to swiped IDs
-      const newSwipedIds = new Set(swipedProfileIds);
+      const newSwipedIds = new Set<string>(swipedProfileIds);
       newSwipedIds.add(profileId);
       setSwipedProfileIds(newSwipedIds);
       
@@ -464,7 +464,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
       
-      // IMPORTANT: Update the potentialConnections state immediately to show next profile
+      // Update the potentialConnections state immediately to show next profile
       setPotentialConnections(prevConnections => {
         // Get the swiped profile's index
         const swipedProfileIndex = prevConnections.findIndex(p => p.id === profileId);

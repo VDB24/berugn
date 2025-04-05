@@ -65,7 +65,7 @@ const UserNav = () => {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-transparent hover:border-primary/30 transition-all p-0">
             <Avatar className="h-full w-full">
-              <AvatarImage src={currentUser.photoURL || undefined} alt={currentUser.name || 'User'} />
+              <AvatarImage src={currentUser.profileImage || undefined} alt={currentUser.name || 'User'} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {currentUser.name?.[0] || currentUser.email[0].toUpperCase()}
               </AvatarFallback>
