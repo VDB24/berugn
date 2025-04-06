@@ -57,6 +57,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Force a re-render of components that depend on theme
+    console.log("Theme changed to:", theme);
   }, [theme, isInitialized]);
 
   const toggleTheme = () => {
