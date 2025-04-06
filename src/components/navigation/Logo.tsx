@@ -28,7 +28,7 @@ const Logo = () => {
       <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div> : theme === 'dark' ? <img src="/lovable-uploads/dd549a30-bc8f-43b0-92ed-805c735d311a.png" alt="Berugn Logo" className="h-10 w-10" /> : <img src="/lovable-uploads/33711422-1b29-4369-b58c-e13edeeffacd.png" alt="Berugn Logo" className="h-14 w-14" />}
         <div className="absolute -inset-1.5 blur-md bg-primary/30 rounded-full -z-10 opacity-70 group-hover:opacity-100 transition-opacity"></div>
       </div>
-      <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">Berugn</span>
+      <span className="text-black font-bold text-2xl\n">Berugn</span>
     </Link>;
 };
 export default Logo;
