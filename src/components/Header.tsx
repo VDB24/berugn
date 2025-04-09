@@ -33,7 +33,7 @@ const Header = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled 
-          ? 'bg-background/80 shadow-md header-blur dark:bg-background/70 py-3' 
+          ? 'bg-background/80 shadow-md header-blur dark:bg-background/70 py-3 backdrop-blur-lg' 
           : 'bg-transparent py-4'
       }`}
     >
@@ -55,7 +55,7 @@ const Header = () => {
             className="md:hidden transition-all duration-300" 
             onClick={toggleMenu}
           >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMenuOpen ? <X size={24} className="text-secondary" /> : <Menu size={24} className="text-secondary" />}
           </Button>
         </div>
       </div>

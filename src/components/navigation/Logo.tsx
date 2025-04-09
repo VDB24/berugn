@@ -42,9 +42,9 @@ const Logo = () => {
             className="h-14 w-14"
           />
         )}
-        <div className="absolute -inset-1.5 blur-md bg-primary/30 rounded-full -z-10 opacity-70 group-hover:opacity-100 transition-opacity"></div>
+        <div className="absolute -inset-1.5 blur-md bg-secondary/30 rounded-full -z-10 opacity-70 group-hover:opacity-100 transition-opacity"></div>
       </div>
-      <span className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>Berugn</span>
+      <span className="text-2xl font-bold text-gradient">Berugn</span>
     </Link>
   );
 };
