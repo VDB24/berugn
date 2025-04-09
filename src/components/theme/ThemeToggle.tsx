@@ -12,13 +12,13 @@ const ThemeToggle = () => {
       size="icon" 
       onClick={toggleTheme} 
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-      className="relative overflow-hidden group"
+      className="relative overflow-hidden group rounded-full p-2 hover:bg-primary/10"
     >
       <span className="absolute inset-0 transform transition-transform duration-500 ease-in-out group-hover:scale-110">
         {theme === 'light' ? (
-          <Moon className="h-5 w-5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 opacity-100" />
+          <Moon className="h-6 w-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 opacity-100 text-foreground" />
         ) : (
-          <Sun className="h-5 w-5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 opacity-100" />
+          <Sun className="h-6 w-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 opacity-100 text-foreground" />
         )}
       </span>
       <span className="sr-only">Toggle theme</span>

@@ -28,23 +28,23 @@ const Logo = () => {
       <div className="relative transition-all duration-300 group-hover:scale-105">
         {!isLoaded ? (
           // Placeholder while images load
-          <div className="h-16 w-16 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+          <div className="h-20 w-20 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
         ) : theme === 'dark' ? (
           <img 
             src="/lovable-uploads/dd549a30-bc8f-43b0-92ed-805c735d311a.png" 
             alt="Berugn Logo" 
-            className="h-16 w-16"
+            className="h-20 w-20"
           />
         ) : (
           <img 
             src="/lovable-uploads/33711422-1b29-4369-b58c-e13edeeffacd.png" 
             alt="Berugn Logo" 
-            className="h-16 w-16"
+            className="h-20 w-20"
           />
         )}
         <div className="absolute -inset-1.5 blur-md bg-primary/30 rounded-full -z-10 opacity-70 group-hover:opacity-100 transition-opacity"></div>
       </div>
-      <span className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>Berugn</span>
+      <span className="text-4xl font-bold text-gradient">Berugn</span>
     </Link>
   );
 };

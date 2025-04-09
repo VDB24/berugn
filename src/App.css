@@ -30,6 +30,18 @@ main {
   animation: bounce 2s infinite;
 }
 
+.hero-section {
+  background-image: radial-gradient(circle at 10% 20%, rgba(var(--primary)/0.1) 0%, rgba(var(--secondary)/0.1) 80%);
+}
+
+.glass-effect {
+  @apply backdrop-blur-md bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 15px 2px rgba(var(--primary), 0.4);
+}
+
 @keyframes bounce {
   0%, 100% {
     transform: translateY(0) translateX(-50%);
