@@ -1,10 +1,11 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -13,62 +14,62 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 196 84% 43%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 222 84% 48%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 244 76% 53%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 270 76% 53%;
+    --secondary-foreground: 210 40% 98%;
 
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
     --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 98%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
     --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
+    --success-foreground: 210 40% 98%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 196 84% 43%;
+    --ring: 222 84% 48%;
 
     --radius: 1rem;
   }
 
   .dark {
     --background: 222 47% 11%;
-    --foreground: 0 0% 98%;
+    --foreground: 210 40% 98%;
 
     --card: 224 71% 4%;
-    --card-foreground: 0 0% 98%;
+    --card-foreground: 210 40% 98%;
 
     --popover: 224 71% 4%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 196 80% 60%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 213 80% 60%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 244 76% 60%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 270 76% 53%;
+    --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 18%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 262 83% 65%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
     --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
+    --success-foreground: 210 40% 98%;
 
     --border: 217 33% 18%;
     --input: 217 33% 18%;
-    --ring: 196 80% 60%;
+    --ring: 212 27% 84%;
   }
 }
 
@@ -110,10 +111,6 @@
   
   .premium-card {
     @apply rounded-2xl border bg-card shadow-md transition-all duration-300 hover:shadow-lg;
-  }
-
-  .hero-gradient {
-    @apply bg-gradient-to-r from-primary/10 via-transparent to-secondary/10;
   }
 }
 
