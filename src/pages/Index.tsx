@@ -71,10 +71,10 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+            {/* Feature 1 - Updated with secondary color */}
             <div className="flex flex-col items-center text-center rounded-2xl bg-card text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
-                <Briefcase className="h-8 w-8 text-primary" />
+              <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
+                <Briefcase className="h-8 w-8 text-secondary" />
               </div>
               <h3 className="text-xl font-bold mb-3">Create Your Profile</h3>
               <p className="text-muted-foreground">
@@ -82,15 +82,15 @@ const Index = () => {
               </p>
               <ul className="mt-4 text-left space-y-2">
                 <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-primary mr-2 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
                   <span className="text-sm">Highlight your key skills</span>
                 </li>
                 <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-primary mr-2 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
                   <span className="text-sm">Set your networking preferences</span>
                 </li>
                 <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-primary mr-2 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
                   <span className="text-sm">Share your professional goals</span>
                 </li>
               </ul>
@@ -123,8 +123,8 @@ const Index = () => {
             
             {/* Feature 3 */}
             <div className="flex flex-col items-center text-center rounded-2xl bg-card text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
-              <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
-                <Zap className="h-8 w-8 text-accent" />
+              <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
+                <Zap className="h-8 w-8 text-secondary" />
               </div>
               <h3 className="text-xl font-bold mb-3">Connect & Grow</h3>
               <p className="text-muted-foreground">
@@ -132,15 +132,15 @@ const Index = () => {
               </p>
               <ul className="mt-4 text-left space-y-2">
                 <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
                   <span className="text-sm">Seamless LinkedIn integration</span>
                 </li>
                 <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
                   <span className="text-sm">Real-time chat notifications</span>
                 </li>
                 <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
                   <span className="text-sm">Industry event recommendations</span>
                 </li>
               </ul>
