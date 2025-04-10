@@ -166,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: `${DEMO_USERS.length + 1}`,
           email,
           password: MOCK_PASSWORD_STORE[email], // Store password for future logins
+          name: '', // Adding the required name property with empty string default
           profileCompleted: false
         };
         
