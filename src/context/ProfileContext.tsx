@@ -344,6 +344,13 @@ const ADDITIONAL_PROFILES: Profile[] = [
   }
 ];
 
+const STORAGE_KEYS = {
+  USER_PROFILES: 'swipe_connect_user_profiles',
+  PREFERENCES: 'swipe_connect_preferences_',
+  MATCHES: 'swipe_connect_matches_',
+  SWIPED: 'swipe_connect_swiped_',
+};
+
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
@@ -357,6 +364,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
+  const [allUserProfiles, setAllUserProfiles] = useState<Profile[]>([...DEMO_PROFILES]);
 
   const loadMoreProfiles = useCallback(async () => {
     if (!currentUser) throw new Error('No user is logged in');
@@ -406,7 +414,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const connections = DEMO_PROFILES.filter(p => p.userId !== currentUser.id);
       setAllProfiles(connections);
       
-      const savedSwipedIds = localStorage.getItem(`swipe_connect_swiped_${currentUser.id}`);
+      const savedSwipedIds = localStorage.getItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`);
       if (savedSwipedIds) {
         try {
           const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
@@ -421,12 +429,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setPotentialConnections(connections);
       }
 
-      const savedPreferences = localStorage.getItem(`swipe_connect_preferences_${currentUser.id}`);
+      const savedPreferences = localStorage.getItem(`${STORAGE_KEYS.PREFERENCES}${currentUser.id}`);
       if (savedPreferences) {
         setPreferences(JSON.parse(savedPreferences));
       }
 
-      const savedMatches = localStorage.getItem(`swipe_connect_matches_${currentUser.id}`);
+      const savedMatches = localStorage.getItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`);
       if (savedMatches) {
         setMatches(JSON.parse(savedMatches));
       }
@@ -456,6 +464,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setUserProfile(newProfile);
+    
+    const updatedProfiles = allUserProfiles.filter(p => p.userId !== currentUser.id);
+    updatedProfiles.push(newProfile);
+    setAllUserProfiles(updatedProfiles);
+    
+    localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+    
+    console.log("Profile created and saved:", newProfile);
   };
 
   const updateProfile = async (profileData: Partial<Profile>) => {
@@ -466,6 +482,13 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedProfile = { ...userProfile, ...profileData };
 
     setUserProfile(updatedProfile);
+    
+    const updatedProfiles = allUserProfiles.map(profile => 
+      profile.userId === currentUser.id ? updatedProfile : profile
+    );
+    setAllUserProfiles(updatedProfiles);
+    
+    localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
   };
 
   const swipeProfile = async (profileId: string, direction: 'left' | 'right') => {
@@ -478,7 +501,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       newSwipedIds.add(profileId);
       setSwipedProfileIds(newSwipedIds);
       
-      localStorage.setItem(`swipe_connect_swiped_${currentUser.id}`, JSON.stringify([...newSwipedIds]));
+      localStorage.setItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`, JSON.stringify([...newSwipedIds]));
 
       if (direction === 'right') {
         const newConnection: Connection = {
@@ -494,7 +517,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           const updatedMatches = [...matches, newConnection];
           setMatches(updatedMatches);
-          localStorage.setItem(`swipe_connect_matches_${currentUser.id}`, JSON.stringify(updatedMatches));
+          localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
         }
       }
       
@@ -533,7 +556,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedPreferences = { ...preferences, ...newPreferences };
     
     setPreferences(updatedPreferences);
-    localStorage.setItem(`swipe_connect_preferences_${currentUser.id}`, JSON.stringify(updatedPreferences));
+    localStorage.setItem(`${STORAGE_KEYS.PREFERENCES}${currentUser.id}`, JSON.stringify(updatedPreferences));
+    
+    console.log("Preferences saved:", updatedPreferences);
   };
 
   const value: ProfileContextType = {
