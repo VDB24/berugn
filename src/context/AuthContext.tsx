@@ -24,8 +24,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data for demonstration
-const DEMO_USERS = [
+// Mock user data store - converted to let so we can add new users
+let DEMO_USERS = [
   { 
     id: '1', 
     email: 'johndoe@example.com', 
@@ -44,11 +44,15 @@ const DEMO_USERS = [
 
 // Mock OTP storage
 const MOCK_OTP_STORE: Record<string, string> = {};
+// Mock password storage for newly registered users
+const MOCK_PASSWORD_STORE: Record<string, string> = {};
 
 // Expose MOCK_OTP_STORE for demonstration purposes (in development only)
 if (process.env.NODE_ENV !== 'production') {
   // @ts-ignore - Adding to window for demo purposes
   window.MOCK_OTP_STORE = MOCK_OTP_STORE;
+  // @ts-ignore - Adding to window for demo purposes
+  window.MOCK_PASSWORD_STORE = MOCK_PASSWORD_STORE;
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -70,8 +74,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find user with matching email and password
-      const user = DEMO_USERS.find(u => u.email === email && u.password === password);
+      // First check the original demo users
+      let user = DEMO_USERS.find(u => u.email === email && u.password === password);
+      
+      // If not found in demo users, check if this is a newly registered user
+      if (!user && MOCK_PASSWORD_STORE[email] === password) {
+        // Find the user in our registered users
+        const registeredUser = DEMO_USERS.find(u => u.email === email);
+        if (registeredUser) {
+          user = registeredUser;
+        }
+      }
       
       if (!user) {
         throw new Error('Invalid email or password');
@@ -99,9 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if user already exists
-      if (DEMO_USERS.some(u => u.email === email)) {
+      if (DEMO_USERS.some(u => u.email === email) || MOCK_PASSWORD_STORE[email]) {
         throw new Error('Email already in use');
       }
+      
+      // Store password for later login (after OTP verification)
+      MOCK_PASSWORD_STORE[email] = password;
       
       // Generate a random 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -149,14 +165,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const newUser = {
           id: `${DEMO_USERS.length + 1}`,
           email,
+          password: MOCK_PASSWORD_STORE[email], // Store password for future logins
           profileCompleted: false
         };
         
-        // In a real app, we would add the user to the database here
+        // Add the new user to our demo users array
+        DEMO_USERS.push(newUser);
+        
+        // Create a user object without the password for state/localStorage
+        const { password: _, ...userWithoutPassword } = newUser;
         
         // Save to state and localStorage
-        setCurrentUser(newUser);
-        localStorage.setItem('swipe_connect_user', JSON.stringify(newUser));
+        setCurrentUser(userWithoutPassword);
+        localStorage.setItem('swipe_connect_user', JSON.stringify(userWithoutPassword));
       }
       
       return Promise.resolve();
