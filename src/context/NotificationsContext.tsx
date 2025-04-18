@@ -50,7 +50,13 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
 
         if (error) throw error;
 
-        setNotifications(data || []);
+        // Type assertion to ensure data matches our Notification interface
+        const typedNotifications = data?.map(item => ({
+          ...item,
+          type: (item.type as "info" | "success" | "warning" | "error") || "info"
+        })) as Notification[];
+        
+        setNotifications(typedNotifications || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
         toast({
@@ -76,18 +82,28 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
         }, 
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setNotifications(prev => [payload.new as Notification, ...prev]);
+            const newNotification = {
+              ...payload.new,
+              type: (payload.new.type as "info" | "success" | "warning" | "error") || "info"
+            } as Notification;
+            
+            setNotifications(prev => [newNotification, ...prev]);
             
             toast({
               title: 'New notification',
               description: payload.new.message,
-              variant: payload.new.type === 'error' ? 'destructive' : 'default',
+              variant: newNotification.type === 'error' ? 'destructive' : 'default',
             });
           } else if (payload.eventType === 'DELETE') {
             setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
+            const updatedNotification = {
+              ...payload.new,
+              type: (payload.new.type as "info" | "success" | "warning" | "error") || "info"
+            } as Notification;
+            
             setNotifications(prev => 
-              prev.map(n => n.id === payload.new.id ? payload.new as Notification : n)
+              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
             );
           }
         }
