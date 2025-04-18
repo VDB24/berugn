@@ -62,12 +62,14 @@ const Register = () => {
   const handleSocialLogin = async (provider: Provider) => {
     try {
       await signInWithProvider(provider);
-      // No toast or navigation here as the user will be redirected
+      // No toast or navigation here as the user will be redirected by Supabase
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign up with social provider';
+      setError(errorMessage);
       toast({
         variant: 'destructive',
         title: 'Sign up failed',
-        description: 'Failed to sign up with social provider. Please try again.',
+        description: errorMessage,
       });
     }
   };

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Provider } from '@supabase/supabase-js';
@@ -247,7 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin + '/browse',
+          redirectTo: `${window.location.origin}/browse`,
         },
       });
       
@@ -257,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // The user will be redirected to the provider's login page
       // and then back to the redirectTo URL
-      // We don't need to set the user here as it will be handled on redirect
+      console.log('OAuth sign-in initiated', data);
     } catch (error) {
       console.error('Error signing in with provider:', error);
       throw error;
