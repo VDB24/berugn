@@ -17,7 +17,8 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      flowType: 'pkce' // Using PKCE flow for better security
+      flowType: 'pkce', // Using PKCE flow for better security
+      debug: process.env.NODE_ENV === 'development' // Add debugging in development
     }
   }
 );

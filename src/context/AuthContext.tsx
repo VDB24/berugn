@@ -266,6 +266,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithProvider = async (provider: Provider) => {
     setIsLoading(true);
     try {
+      // Clear any previous errors
+      console.log(`Starting ${provider} OAuth flow...`);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
