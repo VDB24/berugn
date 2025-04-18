@@ -19,21 +19,19 @@ interface NotificationsContextProps {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-  loading: boolean; // Added loading property
+  loading: boolean;
 }
 
 const NotificationsContext = createContext<NotificationsContextProps | undefined>(undefined);
 
 export const NotificationsProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); // Added loading state
+  const [loading, setLoading] = useState<boolean>(true);
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
-  // Calculate unread count
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Fetch notifications for the current user
   useEffect(() => {
     if (!currentUser) {
       setNotifications([]);
@@ -52,15 +50,14 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
 
         if (error) throw error;
 
-        // Cast types to match the Notification interface
-        const typedNotifications = data.map(notification => ({
-          ...notification,
-          type: notification.type as "info" | "success" | "warning" | "error"
-        }));
-
-        setNotifications(typedNotifications);
+        setNotifications(data || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch notifications',
+          variant: 'destructive',
+        });
       } finally {
         setLoading(false);
       }
@@ -68,8 +65,7 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
 
     fetchNotifications();
 
-    // Set up real-time subscription for new notifications
-    const subscription = supabase
+    const channel = supabase
       .channel('notifications_changes')
       .on('postgres_changes', 
         { 
@@ -80,19 +76,8 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
         }, 
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            // Ensure the new notification has all required properties
-            const newNotification: Notification = {
-              id: payload.new.id,
-              user_id: payload.new.user_id,
-              message: payload.new.message,
-              type: payload.new.type as "info" | "success" | "warning" | "error",
-              read: payload.new.read,
-              created_at: payload.new.created_at
-            };
+            setNotifications(prev => [payload.new as Notification, ...prev]);
             
-            setNotifications(prev => [newNotification, ...prev]);
-            
-            // Show toast for new notification
             toast({
               title: 'New notification',
               description: payload.new.message,
@@ -101,18 +86,8 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
           } else if (payload.eventType === 'DELETE') {
             setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
-            // Ensure the updated notification has all required properties
-            const updatedNotification: Notification = {
-              id: payload.new.id,
-              user_id: payload.new.user_id,
-              message: payload.new.message,
-              type: payload.new.type as "info" | "success" | "warning" | "error",
-              read: payload.new.read,
-              created_at: payload.new.created_at
-            };
-            
             setNotifications(prev => 
-              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+              prev.map(n => n.id === payload.new.id ? payload.new as Notification : n)
             );
           }
         }
@@ -120,11 +95,10 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(channel);
     };
   }, [currentUser, toast]);
 
-  // Mark a notification as read
   const markAsRead = async (id: string) => {
     try {
       const { error } = await supabase
@@ -139,10 +113,14 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
       );
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark notification as read',
+        variant: 'destructive',
+      });
     }
   };
 
-  // Mark all notifications as read
   const markAllAsRead = async () => {
     if (notifications.length === 0) return;
     
@@ -160,10 +138,14 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
       );
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark all notifications as read',
+        variant: 'destructive',
+      });
     }
   };
 
-  // Delete a notification
   const deleteNotification = async (id: string) => {
     try {
       const { error } = await supabase
@@ -176,6 +158,11 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
       setNotifications(prev => prev.filter(n => n.id !== id));
     } catch (error) {
       console.error('Error deleting notification:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete notification',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -186,7 +173,7 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
       markAsRead, 
       markAllAsRead, 
       deleteNotification,
-      loading // Added loading property to the context
+      loading
     }}>
       {children}
     </NotificationsContext.Provider>
