@@ -17,7 +17,7 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (userData: Partial<User>) => Promise<void>;
-  signInWithProvider: (provider: Provider) => Promise<void>;
+  signInWithProvider: (provider: Provider) => Promise<{error?: Error}>;
   verifyOTP: (email: string, otp: string) => Promise<void>;
   resendOTP: (email: string) => Promise<void>;
 }
@@ -269,26 +269,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clear any previous errors
       console.log(`Starting ${provider} OAuth flow...`);
       
+      // Define redirect URL based on current environment
+      const origin = window.location.origin;
+      const redirectTo = `${origin}/browse`;
+      
+      console.log(`Using redirect URL: ${redirectTo}`);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/browse`,
+          redirectTo,
           scopes: provider === 'google' ? 'profile email' : undefined,
         },
       });
       
       if (error) {
         console.error('OAuth error:', error);
-        throw error;
+        return { error };
       }
       
       console.log('OAuth sign-in initiated successfully:', data);
+      return { error: undefined };
       
       // The user will be redirected to the provider's login page
       // and then back to the redirectTo URL via Supabase's auth flow
     } catch (error) {
       console.error('Error signing in with provider:', error);
-      throw error;
+      return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
     } finally {
       setIsLoading(false);
     }

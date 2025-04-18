@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -61,15 +62,34 @@ const Register = () => {
   const handleSocialLogin = async (provider: Provider) => {
     try {
       setError('');
+      console.log(`Starting ${provider} OAuth flow...`);
+      
+      // Display toast before redirecting
       toast({
         title: 'Redirecting',
         description: `Redirecting to ${provider} for authentication...`,
       });
       
-      // Open provider authentication in the same window
-      await signInWithProvider(provider);
-      // The page will be redirected by Supabase's OAuth flow
-      
+      // Add a small delay to ensure toast is displayed before redirect
+      setTimeout(async () => {
+        try {
+          // Handle the provider sign-in with proper error capture
+          const { error } = await signInWithProvider(provider);
+          if (error) {
+            throw error;
+          }
+          // The page will be redirected by Supabase's OAuth flow
+        } catch (err) {
+          console.error(`${provider} login error:`, err);
+          const errorMessage = err instanceof Error ? err.message : `Failed to sign up with ${provider}`;
+          setError(errorMessage);
+          toast({
+            variant: 'destructive',
+            title: 'Sign up failed',
+            description: errorMessage,
+          });
+        }
+      }, 300);
     } catch (err) {
       console.error('Social login error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign up with social provider';
