@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Provider } from '@supabase/supabase-js';
@@ -65,6 +66,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(JSON.parse(savedUser));
     }
     setIsLoading(false);
+    
+    // Listen for auth changes from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state change event:', event);
+        if (session?.user) {
+          console.log('User authenticated via Supabase:', session.user);
+          // Map Supabase user to our app's user format
+          const supabaseUser: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            profileCompleted: false // Default value, should be updated from profile if available
+          };
+          setCurrentUser(supabaseUser);
+          localStorage.setItem('swipe_connect_user', JSON.stringify(supabaseUser));
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -247,16 +270,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         provider,
         options: {
           redirectTo: `${window.location.origin}/browse`,
+          scopes: provider === 'google' ? 'profile email' : undefined,
         },
       });
       
       if (error) {
+        console.error('OAuth error:', error);
         throw error;
       }
       
+      console.log('OAuth sign-in initiated successfully:', data);
+      
       // The user will be redirected to the provider's login page
-      // and then back to the redirectTo URL
-      console.log('OAuth sign-in initiated', data);
+      // and then back to the redirectTo URL via Supabase's auth flow
     } catch (error) {
       console.error('Error signing in with provider:', error);
       throw error;
