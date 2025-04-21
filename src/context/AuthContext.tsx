@@ -16,8 +16,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   signInWithProvider: (provider: Provider) => Promise<{ error?: Error }>;
   updateUserProfile?: (profileData: Partial<{ profileCompleted: boolean; name: string }>) => Promise<void>;
-  verifyOTP?: (email: string, otp: string) => Promise<void>;
-  resendOTP?: (email: string) => Promise<void>;
+  // Removed verifyOTP and resendOTP for emailless login
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -104,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // A stub for updateUserProfile to avoid errors if called
+  // Might be kept if needed for Google/LinkedIn-based onboarding flows
   const updateUserProfile = async (profileData: Partial<{ profileCompleted: boolean; name: string }>) => {
     // Normally here you'd update the user profile information in your DB
     // For now, just update the local currentUser state as a placeholder
@@ -111,15 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(prev => prev ? { ...prev, ...profileData } : prev);
   };
 
-  // Stubs for verifyOTP and resendOTP to avoid errors
-  const verifyOTP = async (email: string, otp: string) => {
-    // Implement this logic if you use OTP verification
-    return;
-  };
-  const resendOTP = async (email: string) => {
-    // Implement this logic if you use OTP verification
-    return;
-  };
+  // Removed verifyOTP and resendOTP functions
 
   const value = {
     currentUser,
@@ -127,8 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     signInWithProvider,
     updateUserProfile,
-    verifyOTP,
-    resendOTP,
+    // Removed verifyOTP and resendOTP from the context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
