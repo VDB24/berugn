@@ -65,7 +65,7 @@ const Register = () => {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white px-2 text-muted-foreground">
-                    Continue with
+                    Sign up with
                   </span>
                 </div>
               </div>

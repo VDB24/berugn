@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
-import OTPVerification from '@/pages/OTPVerification';
+// Removed OTPVerification import
 import Browse from '@/pages/Browse';
 import Matches from '@/pages/Matches';
 import Preferences from '@/pages/Preferences';
@@ -30,7 +30,7 @@ const App = () => {
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/verify-otp" element={<OTPVerification />} />
+                  {/* Removed OTP verification route */}
                   <Route path="/browse" element={<Browse />} />
                   <Route path="/matches" element={<Matches />} />
                   <Route path="/preferences" element={<Preferences />} />
