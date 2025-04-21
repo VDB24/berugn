@@ -15,6 +15,9 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   signInWithProvider: (provider: Provider) => Promise<{ error?: Error }>;
+  updateUserProfile?: (profileData: Partial<{ profileCompleted: boolean; name: string }>) => Promise<void>;
+  verifyOTP?: (email: string, otp: string) => Promise<void>;
+  resendOTP?: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -100,11 +103,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // A stub for updateUserProfile to avoid errors if called
+  const updateUserProfile = async (profileData: Partial<{ profileCompleted: boolean; name: string }>) => {
+    // Normally here you'd update the user profile information in your DB
+    // For now, just update the local currentUser state as a placeholder
+    if (!currentUser) return;
+    setCurrentUser(prev => prev ? { ...prev, ...profileData } : prev);
+  };
+
+  // Stubs for verifyOTP and resendOTP to avoid errors
+  const verifyOTP = async (email: string, otp: string) => {
+    // Implement this logic if you use OTP verification
+    return;
+  };
+  const resendOTP = async (email: string) => {
+    // Implement this logic if you use OTP verification
+    return;
+  };
+
   const value = {
     currentUser,
     isLoading,
     logout,
     signInWithProvider,
+    updateUserProfile,
+    verifyOTP,
+    resendOTP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

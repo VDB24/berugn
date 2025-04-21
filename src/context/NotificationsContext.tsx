@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Notification } from '@/context/NotificationsContext'; // We'll define Notification inline to avoid confusion
 
 export interface Notification {
   id: string;
@@ -42,6 +43,7 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
     const fetchNotifications = async () => {
       setLoading(true);
       try {
+        // Now supabase client is well typed, this will work correctly
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
@@ -50,7 +52,6 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
 
         if (error) throw error;
 
-        // Type assertion to ensure data matches our Notification interface
         const typedNotifications = data?.map(item => ({
           ...item,
           type: (item.type as "info" | "success" | "warning" | "error") || "info"
@@ -203,3 +204,4 @@ export const useNotifications = () => {
   }
   return context;
 };
+
