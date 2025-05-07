@@ -45,14 +45,14 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-secondary/10 via-accent/10 to-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-secondary/10 via-accent/10 to-background dark:from-background dark:via-background/90 dark:to-background">
       <Header />
 
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full mx-auto">
           {/* Subtle animated illustration */}
           <div className="flex justify-center mb-8">
-            <div className="rounded-full bg-gradient-to-tr from-secondary/30 to-primary/30 p-3 animate-float shadow-lg">
+            <div className="rounded-full bg-gradient-to-tr from-secondary/30 to-primary/30 dark:from-secondary/20 dark:to-primary/20 p-3 animate-float shadow-lg">
               <svg width="48" height="48" fill="none" viewBox="0 0 48 48" className="block">
                 <circle cx="24" cy="24" r="19" fill="#68D391" fillOpacity="0.28" />
                 <rect x="14" y="18" width="20" height="14" rx="5" fill="#0A66C2" fillOpacity="0.13"/>
@@ -61,7 +61,7 @@ const Register = () => {
             </div>
           </div>
           <div className="text-center mb-7">
-            <h1 className="text-3xl font-extrabold mb-2 tracking-tight animate-fade-in">Create your account</h1>
+            <h1 className="text-3xl font-extrabold mb-2 tracking-tight animate-fade-in dark:text-foreground">Create your account</h1>
             <p className="text-gray-600 dark:text-muted-foreground animate-fade-in" style={{ animationDelay: ".1s" }}>
               Join SwipeConnect and start building your professional network today.
             </p>
@@ -71,7 +71,7 @@ const Register = () => {
             {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-secondary/20" />
+                <span className="w-full border-t border-secondary/20 dark:border-secondary/10" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-white dark:bg-background px-2 text-muted-foreground font-semibold tracking-wide">
@@ -87,8 +87,8 @@ const Register = () => {
                 type="button"
                 onClick={() => handleSocialLogin('google')}
                 disabled={isLoading}
-                className="w-full group bg-background/80 border border-border rounded-lg px-0 py-3 flex items-center justify-center gap-1 font-medium text-sm shadow-sm 
-                hover:bg-secondary/10 hover:-translate-y-0.5 transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
+                className="w-full group bg-background/80 dark:bg-background/40 border border-border rounded-lg px-0 py-3 flex items-center justify-center gap-1 font-medium text-sm shadow-sm 
+                hover:bg-secondary/10 dark:hover:bg-background/60 hover:-translate-y-0.5 transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
                 style={{ transition: 'box-shadow 0.2s, transform 0.2s' }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 0 24 24" width="22" className="mr-2">
@@ -104,8 +104,8 @@ const Register = () => {
                 type="button"
                 onClick={() => handleSocialLogin('linkedin_oidc')}
                 disabled={isLoading}
-                className="w-full group bg-background/80 border border-border rounded-lg px-0 py-3 flex items-center justify-center gap-1 font-medium text-sm shadow-sm
-                  hover:bg-secondary/10 hover:-translate-y-0.5 transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
+                className="w-full group bg-background/80 dark:bg-background/40 border border-border rounded-lg px-0 py-3 flex items-center justify-center gap-1 font-medium text-sm shadow-sm
+                  hover:bg-secondary/10 dark:hover:bg-background/60 hover:-translate-y-0.5 transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
                 style={{ transition: 'box-shadow 0.2s, transform 0.2s' }}
               >
                 <Linkedin className="mr-2 h-5 w-5 text-[#0A66C2]" />
@@ -115,14 +115,14 @@ const Register = () => {
             {/* Smooth loading state */}
             {isLoading && (
               <div className="w-full flex justify-center mt-4">
-                <span className="animate-pulse text-primary text-sm">Processing...</span>
+                <span className="animate-pulse text-primary dark:text-secondary text-sm">Processing...</span>
               </div>
             )}
 
             <div className="mt-8 text-center text-sm">
               <p className="text-gray-600 dark:text-muted-foreground">
                 Already have an account?{' '}
-                <Link to="/login" className="text-primary font-medium hover:underline transition-colors">
+                <Link to="/login" className="text-primary dark:text-secondary font-medium hover:underline transition-colors">
                   Log in
                 </Link>
               </p>
@@ -135,4 +135,3 @@ const Register = () => {
 };
 
 export default Register;
-
