@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
 
 export interface Notification {
   id: string;
@@ -42,7 +43,6 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
     const fetchNotifications = async () => {
       setLoading(true);
       try {
-        // Now supabase client is well typed, this will work correctly
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
@@ -52,8 +52,12 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
         if (error) throw error;
 
         const typedNotifications = data?.map(item => ({
-          ...item,
-          type: (item.type as "info" | "success" | "warning" | "error") || "info"
+          id: item.id,
+          user_id: item.user_id,
+          message: item.message,
+          type: (item.type as "info" | "success" | "warning" | "error") || "info",
+          read: item.read,
+          created_at: item.created_at
         })) as Notification[];
         
         setNotifications(typedNotifications || []);
@@ -83,8 +87,12 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
         (payload) => {
           if (payload.eventType === 'INSERT') {
             const newNotification = {
-              ...payload.new,
-              type: (payload.new.type as "info" | "success" | "warning" | "error") || "info"
+              id: payload.new.id,
+              user_id: payload.new.user_id,
+              message: payload.new.message,
+              type: (payload.new.type as "info" | "success" | "warning" | "error") || "info",
+              read: payload.new.read,
+              created_at: payload.new.created_at
             } as Notification;
             
             setNotifications(prev => [newNotification, ...prev]);
@@ -98,8 +106,12 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
             setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
             const updatedNotification = {
-              ...payload.new,
-              type: (payload.new.type as "info" | "success" | "warning" | "error") || "info"
+              id: payload.new.id,
+              user_id: payload.new.user_id,
+              message: payload.new.message,
+              type: (payload.new.type as "info" | "success" | "warning" | "error") || "info",
+              read: payload.new.read,
+              created_at: payload.new.created_at
             } as Notification;
             
             setNotifications(prev => 
