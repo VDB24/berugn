@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -8,7 +7,8 @@ import Header from '@/components/Header';
 import ProfileCard from '@/components/ProfileCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Star, RefreshCw } from 'lucide-react';
+import { Star, RefreshCw, Container } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 const Browse = () => {
   const { currentUser } = useAuth();
@@ -17,6 +17,7 @@ const Browse = () => {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefilling, setIsRefilling] = useState(false);
   const [dailyLimit, setDailyLimit] = useState({ total: 20, remaining: 20 });
   const [profilesRemaining, setProfilesRemaining] = useState(0);
 
@@ -84,7 +85,7 @@ const Browse = () => {
     if (dailyLimit.remaining <= 0) {
       toast({
         title: 'Daily limit reached',
-        description: 'You\'ve reached your daily browsing limit. Come back tomorrow!',
+        description: 'You\'ve reached your daily browsing limit. Refill your view capacity to continue!',
         variant: 'destructive',
       });
       return;
@@ -166,9 +167,37 @@ const Browse = () => {
     }
   };
 
+  // Handle refill of view capacity
+  const handleRefillCapacity = () => {
+    setIsRefilling(true);
+    
+    // Simulate API call with timeout
+    setTimeout(() => {
+      const refillAmount = dailyLimit.total;
+      const updatedLimit = {
+        total: dailyLimit.total,
+        remaining: dailyLimit.total
+      };
+      
+      setDailyLimit(updatedLimit);
+      localStorage.setItem('swipe_connect_daily_limit', JSON.stringify(updatedLimit));
+      
+      toast({
+        title: 'View capacity refilled!',
+        description: `You can now view ${refillAmount} more profiles today.`,
+        variant: 'default',
+      });
+      
+      setIsRefilling(false);
+    }, 1200); // Simulate API delay
+  };
+
   // Always use the first profile in the array
   const currentProfile = potentialConnections[0] || null;
   console.log("Current profile displayed:", currentProfile?.id, currentProfile?.name);
+
+  // Calculate progress percentage
+  const viewsUsedPercentage = ((dailyLimit.total - dailyLimit.remaining) / dailyLimit.total) * 100;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -181,13 +210,38 @@ const Browse = () => {
             Find and connect with professionals in your field
           </p>
           
-          {/* Daily limit indicator */}
-          <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm mt-4">
-            <span>{dailyLimit.remaining} of {dailyLimit.total} views remaining today</span>
+          {/* Daily capacity progress bar */}
+          <div className="mt-6 mb-3">
+            <div className="flex justify-between text-sm mb-1">
+              <span>Daily view capacity</span>
+              <span>{dailyLimit.remaining} of {dailyLimit.total} remaining</span>
+            </div>
+            <Progress value={100 - viewsUsedPercentage} className="h-2" />
           </div>
           
+          {/* Refill button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefillCapacity}
+            disabled={isRefilling || dailyLimit.remaining === dailyLimit.total}
+            className="mt-2 bg-secondary/10 hover:bg-secondary/20 border-secondary/30"
+          >
+            {isRefilling ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Refilling...
+              </>
+            ) : (
+              <>
+                <Container className="mr-2 h-4 w-4" />
+                Refill View Capacity
+              </>
+            )}
+          </Button>
+          
           {/* Profiles count indicator */}
-          <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm mt-2 ml-2">
+          <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm mt-4 ml-3">
             <span>{profilesRemaining} profiles available</span>
           </div>
         </div>
