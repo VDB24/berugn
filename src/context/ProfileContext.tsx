@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Skill {
   id: string;
@@ -364,7 +365,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
-  const [allUserProfiles, setAllUserProfiles] = useState<Profile[]>([...DEMO_PROFILES]);
+  const [allUserProfiles, setAllUserProfiles] = useState<Profile[]>([...DEMO_PROFILES, ...ADDITIONAL_PROFILES]);
 
   const loadMoreProfiles = useCallback(async () => {
     if (!currentUser) throw new Error('No user is logged in');
@@ -377,6 +378,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoadingProfiles(true);
       console.log("Loading more profiles...");
       
+      // Make sure we use both demo and additional profiles
+      // This fixes the issue where users couldn't see each other
       const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
         .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
       
@@ -405,13 +408,16 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     if (currentUser) {
-      const profile = DEMO_PROFILES.find(p => p.userId === currentUser.id);
+      // Check ALL profiles for a match with current user
+      const profile = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES].find(p => p.userId === currentUser.id);
       
       if (profile) {
         setUserProfile(profile);
       }
 
-      const connections = DEMO_PROFILES.filter(p => p.userId !== currentUser.id);
+      // Get all connections except current user
+      // Include both DEMO_PROFILES and ADDITIONAL_PROFILES
+      const connections = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES].filter(p => p.userId !== currentUser.id);
       setAllProfiles(connections);
       
       const savedSwipedIds = localStorage.getItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`);
@@ -512,7 +518,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           createdAt: new Date().toISOString()
         };
 
-        if (Math.random() > 0.7) {
+        // Increase match rate from 30% to 70% to make connections more likely
+        if (Math.random() > 0.3) {
           newConnection.status = 'connected';
           
           const updatedMatches = [...matches, newConnection];
