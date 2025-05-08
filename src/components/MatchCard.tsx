@@ -1,19 +1,20 @@
 
 import { type Profile } from '@/context/ProfileContext';
-import { ExternalLink, MessageCircle } from 'lucide-react';
+import { ExternalLink, MessageCircle, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 interface MatchCardProps {
   profile: Profile;
+  isConnected?: boolean;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ profile }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false }) => {
   return (
     <div className="bg-card rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
       <div className="flex flex-col md:flex-row">
         {/* Profile image */}
-        <div className="w-full md:w-40 h-44 md:h-auto shrink-0">
+        <div className="w-full md:w-40 h-44 md:h-auto shrink-0 relative">
           {profile.profileImage ? (
             <img 
               src={profile.profileImage} 
@@ -30,11 +31,14 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile }) => {
           )}
           
           {/* Connected badge */}
-          <div className="absolute top-2 left-2">
-            <Badge variant="default" className="bg-success text-white">
-              Connected
-            </Badge>
-          </div>
+          {isConnected && (
+            <div className="absolute top-2 left-2">
+              <Badge variant="default" className="bg-success text-white">
+                <Check size={12} className="mr-1" />
+                Connected
+              </Badge>
+            </div>
+          )}
         </div>
         
         {/* Profile details */}

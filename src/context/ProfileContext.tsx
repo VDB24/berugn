@@ -355,6 +355,7 @@ const STORAGE_KEYS = {
   MATCHES: 'swipe_connect_matches_',
   SWIPED: 'swipe_connect_swiped_',
   CREATED_PROFILE: 'swipe_connect_profile_created_',
+  REQUESTED_USERS: 'swipe_connect_requested_users_',
 };
 
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -369,6 +370,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
+  const [requestedUserIds, setRequestedUserIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [allUserProfiles, setAllUserProfiles] = useState<Profile[]>([...DEMO_PROFILES, ...ADDITIONAL_PROFILES]);
 
@@ -398,6 +400,22 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  // Load requested users from localStorage
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    const savedRequestedUserIds = localStorage.getItem(`${STORAGE_KEYS.REQUESTED_USERS}${currentUser.id}`);
+    if (savedRequestedUserIds) {
+      try {
+        const parsedIds = new Set<string>(JSON.parse(savedRequestedUserIds));
+        setRequestedUserIds(parsedIds);
+        console.log('Loaded requested users:', parsedIds.size);
+      } catch (error) {
+        console.error("Error parsing saved requested user IDs:", error);
+      }
+    }
+  }, [currentUser]);
+
   const loadMoreProfiles = useCallback(async () => {
     if (!currentUser) throw new Error('No user is logged in');
     if (isLoadingProfiles) {
@@ -410,17 +428,20 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.log("Loading more profiles...");
       
       // Get already requested user IDs
-      const requestedUserIds = matches
+      const requestedUserIdsFromMatches = matches
         .filter(m => m.userId === currentUser.id)
         .map(m => m.connectedUserId);
       
-      console.log("Already requested users:", requestedUserIds);
+      // Combine with tracked requested users
+      const allRequestedIds = [...requestedUserIdsFromMatches, ...requestedUserIds];
+      
+      console.log("Already requested users:", allRequestedIds.length);
       
       // Get all profiles excluding current user, already swiped profiles, and already requested users
       const availableProfiles = allUserProfiles
         .filter(p => p.userId !== currentUser.id && 
                   !swipedProfileIds.has(p.id) &&
-                  !requestedUserIds.includes(p.id));
+                  !allRequestedIds.includes(p.userId));
       
       console.log(`Found ${availableProfiles.length} available profiles after filtering swiped and requested ones`);
       
@@ -443,7 +464,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoadingProfiles(false);
     }
-  }, [currentUser, isLoadingProfiles, swipedProfileIds, allUserProfiles, matches]);
+  }, [currentUser, isLoadingProfiles, swipedProfileIds, allUserProfiles, matches, requestedUserIds]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -549,11 +570,24 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       localStorage.setItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`, JSON.stringify([...newSwipedIds]));
 
-      if (direction === 'right') {
+      // Get the profile to update requested users tracking
+      const profileToSwipe = allUserProfiles.find(p => p.id === profileId);
+      
+      if (direction === 'right' && profileToSwipe) {
+        // Track requested user
+        const newRequestedIds = new Set(requestedUserIds);
+        newRequestedIds.add(profileToSwipe.userId);
+        setRequestedUserIds(newRequestedIds);
+        
+        localStorage.setItem(
+          `${STORAGE_KEYS.REQUESTED_USERS}${currentUser.id}`, 
+          JSON.stringify([...newRequestedIds])
+        );
+
         const newConnection: Connection = {
           id: `connection_${Date.now()}`,
           userId: currentUser.id,
-          connectedUserId: profileId,
+          connectedUserId: profileToSwipe.userId,
           status: 'pending',
           createdAt: new Date().toISOString()
         };
@@ -564,12 +598,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // Check if other user has already requested a connection to simulate match
         const existingRequest = matches.find(
-          m => m.userId === profileId && m.connectedUserId === currentUser.id && m.status === 'pending'
+          m => m.userId === profileToSwipe.userId && m.connectedUserId === currentUser.id && m.status === 'pending'
         );
         
         if (existingRequest) {
           // Update existing request to 'connected'
-          const updatedExistingRequest = {
+          const updatedExistingRequest: Connection = {
             ...existingRequest,
             status: 'connected'
           };
@@ -631,7 +665,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (match.id === connectionId) {
           return {
             ...match,
-            status: accept ? 'connected' : 'rejected'
+            status: accept ? 'connected' as const : 'rejected' as const
           };
         }
         return match;
