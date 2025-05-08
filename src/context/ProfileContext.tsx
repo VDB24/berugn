@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,11 +21,11 @@ export interface Profile {
   profileImage?: string;
 }
 
-interface Connection {
+export interface Connection {
   id: string;
   userId: string;
   connectedUserId: string;
-  status: 'pending' | 'connected';
+  status: 'pending' | 'connected' | 'rejected';
   createdAt: string;
 }
 
@@ -46,6 +45,10 @@ interface ProfileContextType {
   swipeProfile: (profileId: string, direction: 'left' | 'right') => Promise<void>;
   updatePreferences: (newPreferences: Partial<Preference>) => Promise<void>;
   loadMoreProfiles: () => Promise<void>;
+  respondToRequest: (connectionId: string, accept: boolean) => Promise<void>;
+  getSentRequests: () => Connection[];
+  getPendingRequests: () => {connection: Connection, profile: Profile}[];
+  getActiveConnections: () => {connection: Connection, profile: Profile}[];
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -406,11 +409,20 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoadingProfiles(true);
       console.log("Loading more profiles...");
       
-      // Get all profiles excluding current user and already swiped profiles
-      const availableProfiles = allUserProfiles
-        .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
+      // Get already requested user IDs
+      const requestedUserIds = matches
+        .filter(m => m.userId === currentUser.id)
+        .map(m => m.connectedUserId);
       
-      console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
+      console.log("Already requested users:", requestedUserIds);
+      
+      // Get all profiles excluding current user, already swiped profiles, and already requested users
+      const availableProfiles = allUserProfiles
+        .filter(p => p.userId !== currentUser.id && 
+                  !swipedProfileIds.has(p.id) &&
+                  !requestedUserIds.includes(p.id));
+      
+      console.log(`Found ${availableProfiles.length} available profiles after filtering swiped and requested ones`);
       
       setAllProfiles(availableProfiles);
       
@@ -431,7 +443,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoadingProfiles(false);
     }
-  }, [currentUser, isLoadingProfiles, swipedProfileIds, allUserProfiles]);
+  }, [currentUser, isLoadingProfiles, swipedProfileIds, allUserProfiles, matches]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -545,14 +557,29 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           status: 'pending',
           createdAt: new Date().toISOString()
         };
+        
+        const updatedMatches = [...matches, newConnection];
+        setMatches(updatedMatches);
+        localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
 
-        // Increase match rate to 70% to make connections more likely
-        if (Math.random() > 0.3) {
-          newConnection.status = 'connected';
+        // Check if other user has already requested a connection to simulate match
+        const existingRequest = matches.find(
+          m => m.userId === profileId && m.connectedUserId === currentUser.id && m.status === 'pending'
+        );
+        
+        if (existingRequest) {
+          // Update existing request to 'connected'
+          const updatedExistingRequest = {
+            ...existingRequest,
+            status: 'connected'
+          };
           
-          const updatedMatches = [...matches, newConnection];
-          setMatches(updatedMatches);
-          localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
+          const finalMatches = updatedMatches.map(m => 
+            m.id === existingRequest.id ? updatedExistingRequest : m
+          );
+          
+          setMatches(finalMatches);
+          localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(finalMatches));
         }
       }
       
@@ -596,6 +623,75 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     console.log("Preferences saved:", updatedPreferences);
   };
 
+  const respondToRequest = async (connectionId: string, accept: boolean) => {
+    if (!currentUser) throw new Error('No user is logged in');
+    
+    try {
+      const updatedMatches = matches.map(match => {
+        if (match.id === connectionId) {
+          return {
+            ...match,
+            status: accept ? 'connected' : 'rejected'
+          };
+        }
+        return match;
+      });
+      
+      setMatches(updatedMatches);
+      localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
+    } catch (error) {
+      console.error("Error responding to connection request:", error);
+      throw error;
+    }
+  };
+
+  const getSentRequests = () => {
+    if (!currentUser) return [];
+    
+    return matches.filter(m => 
+      m.userId === currentUser.id && m.status === 'pending'
+    );
+  };
+
+  const getPendingRequests = () => {
+    if (!currentUser) return [];
+    
+    const pendingRequests = matches.filter(m => 
+      m.connectedUserId === currentUser.id && m.status === 'pending'
+    );
+    
+    return pendingRequests.map(connection => {
+      const profile = allUserProfiles.find(p => p.id === connection.userId);
+      return {
+        connection,
+        profile: profile!
+      };
+    }).filter(item => item.profile); // Filter out any undefined profiles
+  };
+
+  const getActiveConnections = () => {
+    if (!currentUser) return [];
+    
+    // Get connections where the current user is either the requester or the requested
+    const activeConnections = matches.filter(m => 
+      ((m.userId === currentUser.id) || 
+       (m.connectedUserId === currentUser.id)) && 
+      m.status === 'connected'
+    );
+    
+    return activeConnections.map(connection => {
+      // Find the profile of the other person in the connection
+      const otherPersonId = connection.userId === currentUser.id ? 
+        connection.connectedUserId : connection.userId;
+      
+      const profile = allUserProfiles.find(p => p.id === otherPersonId);
+      return {
+        connection,
+        profile: profile!
+      };
+    }).filter(item => item.profile); // Filter out any undefined profiles
+  };
+
   const value: ProfileContextType = {
     userProfile,
     potentialConnections,
@@ -605,7 +701,11 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateProfile,
     swipeProfile,
     updatePreferences,
-    loadMoreProfiles
+    loadMoreProfiles,
+    respondToRequest,
+    getSentRequests,
+    getPendingRequests,
+    getActiveConnections
   };
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

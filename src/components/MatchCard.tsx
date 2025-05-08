@@ -1,6 +1,6 @@
 
 import { type Profile } from '@/context/ProfileContext';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -10,7 +10,7 @@ interface MatchCardProps {
 
 const MatchCard: React.FC<MatchCardProps> = ({ profile }) => {
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+    <div className="bg-card rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
       <div className="flex flex-col md:flex-row">
         {/* Profile image */}
         <div className="w-full md:w-40 h-44 md:h-auto shrink-0">
@@ -28,6 +28,13 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile }) => {
               </span>
             </div>
           )}
+          
+          {/* Connected badge */}
+          <div className="absolute top-2 left-2">
+            <Badge variant="default" className="bg-success text-white">
+              Connected
+            </Badge>
+          </div>
         </div>
         
         {/* Profile details */}
@@ -87,6 +94,18 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile }) => {
           <p className="text-sm text-muted-foreground line-clamp-2">
             {profile.bio}
           </p>
+          
+          {/* Message button */}
+          <div className="mt-3">
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="gap-2"
+            >
+              <MessageCircle size={16} />
+              Message
+            </Button>
+          </div>
         </div>
       </div>
     </div>
