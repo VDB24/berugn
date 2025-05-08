@@ -1,7 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
-import { ProfileProvider } from '@/context/ProfileProvider';
+import { ProfileProvider } from '@/context/ProfileContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
