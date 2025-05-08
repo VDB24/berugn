@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -350,6 +351,7 @@ const STORAGE_KEYS = {
   PREFERENCES: 'swipe_connect_preferences_',
   MATCHES: 'swipe_connect_matches_',
   SWIPED: 'swipe_connect_swiped_',
+  CREATED_PROFILE: 'swipe_connect_profile_created_',
 };
 
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -367,6 +369,32 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [allUserProfiles, setAllUserProfiles] = useState<Profile[]>([...DEMO_PROFILES, ...ADDITIONAL_PROFILES]);
 
+  // Load user profiles from localStorage
+  useEffect(() => {
+    const storedProfiles = localStorage.getItem(STORAGE_KEYS.USER_PROFILES);
+    if (storedProfiles) {
+      try {
+        const parsedProfiles = JSON.parse(storedProfiles);
+        // Merge stored profiles with demo and additional profiles
+        const combinedProfiles = [...parsedProfiles];
+        
+        // Add any demo profiles that aren't in the stored profiles
+        const storedUserIds = new Set(parsedProfiles.map((p: Profile) => p.userId));
+        
+        [...DEMO_PROFILES, ...ADDITIONAL_PROFILES].forEach(demoProfile => {
+          if (!storedUserIds.has(demoProfile.userId)) {
+            combinedProfiles.push(demoProfile);
+          }
+        });
+        
+        setAllUserProfiles(combinedProfiles);
+        console.log('Loaded profiles from storage:', combinedProfiles.length);
+      } catch (error) {
+        console.error('Error parsing stored profiles:', error);
+      }
+    }
+  }, []);
+
   const loadMoreProfiles = useCallback(async () => {
     if (!currentUser) throw new Error('No user is logged in');
     if (isLoadingProfiles) {
@@ -378,9 +406,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoadingProfiles(true);
       console.log("Loading more profiles...");
       
-      // Make sure we use both demo and additional profiles
-      // This fixes the issue where users couldn't see each other
-      const availableProfiles = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES]
+      // Get all profiles excluding current user and already swiped profiles
+      const availableProfiles = allUserProfiles
         .filter(p => p.userId !== currentUser.id && !swipedProfileIds.has(p.id));
       
       console.log(`Found ${availableProfiles.length} available profiles after filtering swiped ones`);
@@ -404,64 +431,62 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoadingProfiles(false);
     }
-  }, [currentUser, isLoadingProfiles, swipedProfileIds]);
+  }, [currentUser, isLoadingProfiles, swipedProfileIds, allUserProfiles]);
 
   useEffect(() => {
-    if (currentUser) {
-      // Check ALL profiles for a match with current user
-      const profile = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES].find(p => p.userId === currentUser.id);
-      
-      if (profile) {
-        setUserProfile(profile);
-      }
+    if (!currentUser) {
+      return;
+    }
+    
+    console.log('Loading user data for:', currentUser.id);
+    
+    // Check if user has created a profile before
+    const hasCreatedProfile = localStorage.getItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`);
+    
+    // Find user's profile in all profiles
+    const userProfileData = allUserProfiles.find(p => p.userId === currentUser.id);
+    
+    if (userProfileData) {
+      console.log('Found existing profile for user:', currentUser.id);
+      setUserProfile(userProfileData);
+    } else if (hasCreatedProfile) {
+      console.log('User has created a profile before, but profile not found');
+    }
 
-      // Get all connections except current user
-      // Include both DEMO_PROFILES and ADDITIONAL_PROFILES
-      const connections = [...DEMO_PROFILES, ...ADDITIONAL_PROFILES].filter(p => p.userId !== currentUser.id);
-      setAllProfiles(connections);
-      
-      const savedSwipedIds = localStorage.getItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`);
-      if (savedSwipedIds) {
-        try {
-          const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
-          setSwipedProfileIds(parsedIds);
-          const filteredConnections = connections.filter(p => !parsedIds.has(p.id));
-          setPotentialConnections(filteredConnections);
-        } catch (error) {
-          console.error("Error parsing saved swiped IDs:", error);
-          setPotentialConnections(connections);
-        }
-      } else {
+    // Get all connections except current user
+    const connections = allUserProfiles.filter(p => p.userId !== currentUser.id);
+    setAllProfiles(connections);
+    
+    const savedSwipedIds = localStorage.getItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`);
+    if (savedSwipedIds) {
+      try {
+        const parsedIds = new Set<string>(JSON.parse(savedSwipedIds));
+        setSwipedProfileIds(parsedIds);
+        const filteredConnections = connections.filter(p => !parsedIds.has(p.id));
+        setPotentialConnections(filteredConnections);
+      } catch (error) {
+        console.error("Error parsing saved swiped IDs:", error);
         setPotentialConnections(connections);
       }
-
-      const savedPreferences = localStorage.getItem(`${STORAGE_KEYS.PREFERENCES}${currentUser.id}`);
-      if (savedPreferences) {
-        setPreferences(JSON.parse(savedPreferences));
-      }
-
-      const savedMatches = localStorage.getItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`);
-      if (savedMatches) {
-        setMatches(JSON.parse(savedMatches));
-      }
     } else {
-      setUserProfile(null);
-      setPotentialConnections([]);
-      setMatches([]);
-      setPreferences({
-        industries: [],
-        experienceLevels: [],
-        connectionPurposes: []
-      });
-      setAllProfiles([]);
-      setSwipedProfileIds(new Set());
+      setPotentialConnections(connections);
     }
-  }, [currentUser]);
+
+    const savedPreferences = localStorage.getItem(`${STORAGE_KEYS.PREFERENCES}${currentUser.id}`);
+    if (savedPreferences) {
+      setPreferences(JSON.parse(savedPreferences));
+    }
+
+    const savedMatches = localStorage.getItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`);
+    if (savedMatches) {
+      setMatches(JSON.parse(savedMatches));
+    }
+  }, [currentUser, allUserProfiles]);
 
   const createProfile = async (profileData: Omit<Profile, 'id' | 'userId'>) => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500)); // Shorter delay for better UX
 
     const newProfile: Profile = {
       id: `profile_${Date.now()}`,
@@ -471,11 +496,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setUserProfile(newProfile);
     
+    // Store in local profiles
     const updatedProfiles = allUserProfiles.filter(p => p.userId !== currentUser.id);
     updatedProfiles.push(newProfile);
     setAllUserProfiles(updatedProfiles);
     
+    // Save to localStorage
     localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+    localStorage.setItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`, 'true');
     
     console.log("Profile created and saved:", newProfile);
   };
@@ -483,7 +511,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateProfile = async (profileData: Partial<Profile>) => {
     if (!currentUser || !userProfile) throw new Error('No user profile found');
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const updatedProfile = { ...userProfile, ...profileData };
 
@@ -518,7 +546,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           createdAt: new Date().toISOString()
         };
 
-        // Increase match rate from 30% to 70% to make connections more likely
+        // Increase match rate to 70% to make connections more likely
         if (Math.random() > 0.3) {
           newConnection.status = 'connected';
           
@@ -558,7 +586,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updatePreferences = async (newPreferences: Partial<Preference>) => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const updatedPreferences = { ...preferences, ...newPreferences };
     

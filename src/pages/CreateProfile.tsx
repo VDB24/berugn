@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import {
 
 const CreateProfile = () => {
   const { currentUser, updateUserProfile } = useAuth();
-  const { createProfile } = useProfile();
+  const { createProfile, userProfile } = useProfile();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -38,14 +38,33 @@ const CreateProfile = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
+
+  // Check if user already has a profile
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (userProfile) {
+        console.log('User already has a profile:', userProfile);
+        // Make sure the currentUser profile status is updated
+        if (currentUser && !currentUser.profileCompleted) {
+          await updateUserProfile({ profileCompleted: true });
+        }
+        setIsCheckingProfile(false);
+      } else {
+        setIsCheckingProfile(false);
+      }
+    };
+    
+    checkProfile();
+  }, [currentUser, userProfile, updateUserProfile]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
 
-  // If user already has a profile, redirect to browse page
-  if (currentUser.profileCompleted) {
+  // If user already has a profile (after checking), redirect to browse page
+  if (!isCheckingProfile && (currentUser.profileCompleted || userProfile)) {
     return <Navigate to="/browse" />;
   }
 
@@ -142,6 +161,20 @@ const CreateProfile = () => {
     '10+ years',
     'Executive',
   ];
+
+  // Display loading state while checking profile
+  if (isCheckingProfile) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container max-w-3xl px-4 py-12 mt-8 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg">Loading profile information...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -15,48 +15,86 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   signInWithProvider: (provider: Provider) => Promise<{ error?: Error }>;
-  updateUserProfile?: (profileData: Partial<{ profileCompleted: boolean; name: string }>) => Promise<void>;
-  // Removed verifyOTP and resendOTP for emailless login
+  updateUserProfile: (profileData: Partial<{ profileCompleted: boolean; name: string }>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const USER_STORAGE_KEY = 'swipe_connect_user';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<CustomUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Try to load saved user from localStorage first for faster UI rendering
+    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+    if (savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Failed to parse saved user:', error);
+        localStorage.removeItem(USER_STORAGE_KEY);
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        // Get user metadata from localStorage if available
+        const savedUserData = localStorage.getItem(USER_STORAGE_KEY);
+        let profileCompleted = false;
+        
+        if (savedUserData) {
+          try {
+            const savedUser = JSON.parse(savedUserData);
+            profileCompleted = savedUser.profileCompleted || false;
+          } catch (error) {
+            console.error('Failed to parse saved user data:', error);
+          }
+        }
+        
         const user: CustomUser = {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || '',
-          profileCompleted: false // Future: update after profile info is filled
+          profileCompleted: profileCompleted
         };
         setCurrentUser(user);
-        localStorage.setItem('swipe_connect_user', JSON.stringify(user));
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       } else {
         setCurrentUser(null);
-        localStorage.removeItem('swipe_connect_user');
+        localStorage.removeItem(USER_STORAGE_KEY);
       }
       setIsLoading(false);
     });
 
-    // also initialize session the first time
+    // Initialize session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        // Get user metadata from localStorage if available
+        const savedUserData = localStorage.getItem(USER_STORAGE_KEY);
+        let profileCompleted = false;
+        
+        if (savedUserData) {
+          try {
+            const savedUser = JSON.parse(savedUserData);
+            profileCompleted = savedUser.profileCompleted || false;
+          } catch (error) {
+            console.error('Failed to parse saved user data:', error);
+          }
+        }
+        
         const user: CustomUser = {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || '',
-          profileCompleted: false
+          profileCompleted: profileCompleted
         };
         setCurrentUser(user);
-        localStorage.setItem('swipe_connect_user', JSON.stringify(user));
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       } else {
         setCurrentUser(null);
-        localStorage.removeItem('swipe_connect_user');
+        localStorage.removeItem(USER_STORAGE_KEY);
       }
       setIsLoading(false);
     });
@@ -96,22 +134,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
       setCurrentUser(null);
-      localStorage.removeItem('swipe_connect_user');
+      localStorage.removeItem(USER_STORAGE_KEY);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // A stub for updateUserProfile to avoid errors if called
-  // Might be kept if needed for Google/LinkedIn-based onboarding flows
   const updateUserProfile = async (profileData: Partial<{ profileCompleted: boolean; name: string }>) => {
-    // Normally here you'd update the user profile information in your DB
-    // For now, just update the local currentUser state as a placeholder
     if (!currentUser) return;
-    setCurrentUser(prev => prev ? { ...prev, ...profileData } : prev);
+    
+    const updatedUser = { ...currentUser, ...profileData };
+    setCurrentUser(updatedUser);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    
+    console.log('User profile updated:', updatedUser);
   };
-
-  // Removed verifyOTP and resendOTP functions
 
   const value = {
     currentUser,
@@ -119,7 +156,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     signInWithProvider,
     updateUserProfile,
-    // Removed verifyOTP and resendOTP from the context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

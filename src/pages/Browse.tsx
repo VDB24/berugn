@@ -22,9 +22,19 @@ const Browse = () => {
 
   // Initial load effect
   useEffect(() => {
-    // Simulate loading delay
-    const timer = setTimeout(() => {
-      setIsLoading(false);
+    if (currentUser) {
+      const loadProfiles = async () => {
+        try {
+          await loadMoreProfiles();
+          console.log("Initial profile load complete");
+        } catch (error) {
+          console.error("Error loading initial profiles:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadProfiles();
       
       // Get daily limit from localStorage or set default
       const savedLimit = localStorage.getItem('swipe_connect_daily_limit');
@@ -35,10 +45,8 @@ const Browse = () => {
           console.error("Error parsing saved limit:", error);
         }
       }
-    }, 1000); // Reduced delay for better user experience
-    
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  }, [currentUser, loadMoreProfiles]);
 
   // This effect will run whenever potentialConnections changes
   useEffect(() => {
@@ -47,13 +55,13 @@ const Browse = () => {
     console.log(`Total profiles available: ${potentialConnections.length}`);
     
     // Load more profiles if running low, but avoid loading on initial render
-    if (potentialConnections.length < 3 && !isLoading) {
+    if (potentialConnections.length < 3 && !isLoading && currentUser) {
       console.log("Running low on profiles, loading more from effect...");
       loadMoreProfiles()
         .then(() => console.log("Successfully loaded more profiles"))
         .catch(error => console.error("Failed to load more profiles:", error));
     }
-  }, [potentialConnections, loadMoreProfiles, isLoading]);
+  }, [potentialConnections, loadMoreProfiles, isLoading, currentUser]);
 
   // If user is not logged in, redirect to login page
   if (!currentUser) {
