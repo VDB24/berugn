@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,302 +54,6 @@ interface ProfileContextType {
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
-// Mock data
-const DEMO_PROFILES: Profile[] = [
-  {
-    id: '1',
-    userId: '1',
-    name: 'John Doe',
-    jobTitle: 'Senior Software Engineer',
-    company: 'TechCorp',
-    industry: 'Technology',
-    experience: '5-10 years',
-    bio: 'Passionate about building scalable web applications and mentoring junior developers.',
-    skills: [
-      { id: '1', name: 'JavaScript' },
-      { id: '2', name: 'React' },
-      { id: '3', name: 'Node.js' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/johndoe',
-    profileImage: 'https://randomuser.me/api/portraits/men/1.jpg'
-  },
-  {
-    id: '2',
-    userId: '2',
-    name: 'Sarah Johnson',
-    jobTitle: 'Product Manager',
-    company: 'InnovateCo',
-    industry: 'Technology',
-    experience: '3-5 years',
-    bio: 'Driven product manager with a background in UX design and a passion for user-centric products.',
-    skills: [
-      { id: '4', name: 'Product Strategy' },
-      { id: '5', name: 'Agile' },
-      { id: '6', name: 'User Research' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/sarahjohnson',
-    profileImage: 'https://randomuser.me/api/portraits/women/2.jpg'
-  },
-  {
-    id: '3',
-    userId: '3',
-    name: 'Michael Chen',
-    jobTitle: 'Data Scientist',
-    company: 'DataDriven',
-    industry: 'Data & Analytics',
-    experience: '1-3 years',
-    bio: 'Data scientist specializing in machine learning models for business applications.',
-    skills: [
-      { id: '7', name: 'Python' },
-      { id: '8', name: 'Machine Learning' },
-      { id: '9', name: 'SQL' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/michaelchen',
-    profileImage: 'https://randomuser.me/api/portraits/men/3.jpg'
-  },
-  {
-    id: '4',
-    userId: '4',
-    name: 'Emily Davis',
-    jobTitle: 'Marketing Director',
-    company: 'BrandBuilders',
-    industry: 'Marketing',
-    experience: '10+ years',
-    bio: 'Creative marketing professional with expertise in digital strategy and brand development.',
-    skills: [
-      { id: '10', name: 'Digital Marketing' },
-      { id: '11', name: 'Brand Strategy' },
-      { id: '12', name: 'Content Creation' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/emilydavis',
-    profileImage: 'https://randomuser.me/api/portraits/women/4.jpg'
-  },
-  {
-    id: '5',
-    userId: '5',
-    name: 'James Wilson',
-    jobTitle: 'UX Designer',
-    company: 'DesignHub',
-    industry: 'Design',
-    experience: '3-5 years',
-    bio: 'User experience designer passionate about creating intuitive and accessible digital products.',
-    skills: [
-      { id: '13', name: 'User Research' },
-      { id: '14', name: 'Wireframing' },
-      { id: '15', name: 'Figma' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/jameswilson',
-    profileImage: 'https://randomuser.me/api/portraits/men/5.jpg'
-  },
-  {
-    id: '6',
-    userId: '6',
-    name: 'Jennifer Lee',
-    jobTitle: 'Full Stack Developer',
-    company: 'TechFusion',
-    industry: 'Technology',
-    experience: '3-5 years',
-    bio: 'Full stack developer specializing in React and Node.js. Passionate about creating efficient, scalable applications and mentoring junior developers.',
-    skills: [
-      { id: '16', name: 'React' },
-      { id: '17', name: 'Node.js' },
-      { id: '18', name: 'TypeScript' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/jenniferlee',
-    profileImage: 'https://randomuser.me/api/portraits/women/15.jpg'
-  },
-  {
-    id: '7',
-    userId: '7',
-    name: 'Robert Garcia',
-    jobTitle: 'Cybersecurity Analyst',
-    company: 'SecureNet',
-    industry: 'Information Security',
-    experience: '5-10 years',
-    bio: 'Cybersecurity professional with a focus on threat detection and incident response. Committed to building robust security systems for organizations.',
-    skills: [
-      { id: '19', name: 'Network Security' },
-      { id: '20', name: 'Penetration Testing' },
-      { id: '21', name: 'Incident Response' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/robertgarcia',
-    profileImage: 'https://randomuser.me/api/portraits/men/22.jpg'
-  },
-  {
-    id: '8',
-    userId: '8',
-    name: 'Priya Patel',
-    jobTitle: 'Product Designer',
-    company: 'DesignIQ',
-    industry: 'Design',
-    experience: '3-5 years',
-    bio: 'Product designer with a background in UX research and visual design. Passionate about creating user-centered products that solve real problems.',
-    skills: [
-      { id: '22', name: 'UX/UI Design' },
-      { id: '23', name: 'Prototyping' },
-      { id: '24', name: 'User Research' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/priyapatel',
-    profileImage: 'https://randomuser.me/api/portraits/women/29.jpg'
-  },
-  {
-    id: '9',
-    userId: '9',
-    name: 'David Kim',
-    jobTitle: 'AI Research Scientist',
-    company: 'InnovateAI',
-    industry: 'Artificial Intelligence',
-    experience: '5-10 years',
-    bio: 'AI researcher specializing in natural language processing and machine learning. Focused on developing ethical AI solutions that enhance human capabilities.',
-    skills: [
-      { id: '25', name: 'Machine Learning' },
-      { id: '26', name: 'Natural Language Processing' },
-      { id: '27', name: 'Python' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/davidkim',
-    profileImage: 'https://randomuser.me/api/portraits/men/36.jpg'
-  },
-  {
-    id: '10',
-    userId: '10',
-    name: 'Sophia Martinez',
-    jobTitle: 'Digital Marketing Specialist',
-    company: 'GrowthHackers',
-    industry: 'Marketing',
-    experience: '1-3 years',
-    bio: 'Digital marketing specialist with expertise in SEO, content marketing, and social media strategy. Passionate about data-driven marketing approaches.',
-    skills: [
-      { id: '28', name: 'SEO' },
-      { id: '29', name: 'Content Strategy' },
-      { id: '30', name: 'Social Media Marketing' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/sophiamartinez',
-    profileImage: 'https://randomuser.me/api/portraits/women/42.jpg'
-  }
-];
-
-const ADDITIONAL_PROFILES: Profile[] = [
-  {
-    id: '11',
-    userId: '11',
-    name: 'Alex Rivera',
-    jobTitle: 'Frontend Developer',
-    company: 'WebSolutions',
-    industry: 'Technology',
-    experience: '1-3 years',
-    bio: 'Frontend developer specializing in React and Vue. Passionate about creating beautiful and accessible user interfaces.',
-    skills: [
-      { id: '31', name: 'React' },
-      { id: '32', name: 'Vue' },
-      { id: '33', name: 'CSS' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/alexrivera',
-    profileImage: 'https://randomuser.me/api/portraits/men/10.jpg'
-  },
-  {
-    id: '12',
-    userId: '12',
-    name: 'Sophia Kim',
-    jobTitle: 'Project Manager',
-    company: 'GlobalTech',
-    industry: 'Technology',
-    experience: '3-5 years',
-    bio: 'Project manager with a technical background, focused on delivering software products on time and within budget.',
-    skills: [
-      { id: '34', name: 'Agile' },
-      { id: '35', name: 'Scrum' },
-      { id: '36', name: 'JIRA' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/sophiakim',
-    profileImage: 'https://randomuser.me/api/portraits/women/10.jpg'
-  },
-  {
-    id: '13',
-    userId: '13',
-    name: 'Marcus Johnson',
-    jobTitle: 'DevOps Engineer',
-    company: 'CloudNative',
-    industry: 'Technology',
-    experience: '3-5 years',
-    bio: 'DevOps engineer specializing in cloud infrastructure, CI/CD pipelines, and containerization technologies.',
-    skills: [
-      { id: '37', name: 'Docker' },
-      { id: '38', name: 'Kubernetes' },
-      { id: '39', name: 'AWS' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/marcusjohnson',
-    profileImage: 'https://randomuser.me/api/portraits/men/15.jpg'
-  },
-  {
-    id: '14',
-    userId: '14',
-    name: 'Olivia Taylor',
-    jobTitle: 'Blockchain Developer',
-    company: 'ChainInnovate',
-    industry: 'Technology',
-    experience: '1-3 years',
-    bio: 'Blockchain developer with expertise in smart contracts and decentralized applications. Passionate about the future of Web3 technologies.',
-    skills: [
-      { id: '40', name: 'Solidity' },
-      { id: '41', name: 'Ethereum' },
-      { id: '42', name: 'Smart Contracts' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/oliviataylor',
-    profileImage: 'https://randomuser.me/api/portraits/women/23.jpg'
-  },
-  {
-    id: '15',
-    userId: '15',
-    name: 'Jason Park',
-    jobTitle: 'Mobile App Developer',
-    company: 'AppWorks',
-    industry: 'Technology',
-    experience: '3-5 years',
-    bio: 'Mobile app developer specializing in React Native and Swift. Focused on creating seamless cross-platform experiences.',
-    skills: [
-      { id: '43', name: 'React Native' },
-      { id: '44', name: 'Swift' },
-      { id: '45', name: 'Mobile UX' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/jasonpark',
-    profileImage: 'https://randomuser.me/api/portraits/men/28.jpg'
-  },
-  {
-    id: '16',
-    userId: '16',
-    name: 'Emma Rodriguez',
-    jobTitle: 'UI/UX Researcher',
-    company: 'UserFirst',
-    industry: 'Design',
-    experience: '1-3 years',
-    bio: 'UI/UX researcher focused on understanding user behaviors and needs through qualitative and quantitative methods.',
-    skills: [
-      { id: '46', name: 'User Testing' },
-      { id: '47', name: 'Usability Studies' },
-      { id: '48', name: 'Data Analysis' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/emmarodriguez',
-    profileImage: 'https://randomuser.me/api/portraits/women/33.jpg'
-  },
-  {
-    id: '17',
-    userId: '17',
-    name: 'Tyler Jackson',
-    jobTitle: 'Game Developer',
-    company: 'GameCraft',
-    industry: 'Gaming',
-    experience: '3-5 years',
-    bio: 'Game developer with experience in Unity and Unreal Engine. Passionate about creating immersive gaming experiences.',
-    skills: [
-      { id: '49', name: 'Unity' },
-      { id: '50', name: 'C#' },
-      { id: '51', name: 'Game Design' }
-    ],
-    linkedInUrl: 'https://linkedin.com/in/tylerjackson',
-    profileImage: 'https://randomuser.me/api/portraits/men/45.jpg'
-  }
-];
-
 const STORAGE_KEYS = {
   USER_PROFILES: 'swipe_connect_user_profiles',
   PREFERENCES: 'swipe_connect_preferences_',
@@ -372,7 +77,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [requestedUserIds, setRequestedUserIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
-  const [allUserProfiles, setAllUserProfiles] = useState<Profile[]>([...DEMO_PROFILES, ...ADDITIONAL_PROFILES]);
 
   // Load user profiles from localStorage
   useEffect(() => {
@@ -380,20 +84,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (storedProfiles) {
       try {
         const parsedProfiles = JSON.parse(storedProfiles);
-        // Merge stored profiles with demo and additional profiles
-        const combinedProfiles = [...parsedProfiles];
-        
-        // Add any demo profiles that aren't in the stored profiles
-        const storedUserIds = new Set(parsedProfiles.map((p: Profile) => p.userId));
-        
-        [...DEMO_PROFILES, ...ADDITIONAL_PROFILES].forEach(demoProfile => {
-          if (!storedUserIds.has(demoProfile.userId)) {
-            combinedProfiles.push(demoProfile);
-          }
-        });
-        
-        setAllUserProfiles(combinedProfiles);
-        console.log('Loaded profiles from storage:', combinedProfiles.length);
+        setAllProfiles(parsedProfiles);
+        console.log('Loaded profiles from storage:', parsedProfiles.length);
       } catch (error) {
         console.error('Error parsing stored profiles:', error);
       }
@@ -438,14 +130,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.log("Already requested users:", allRequestedIds.length);
       
       // Get all profiles excluding current user, already swiped profiles, and already requested users
-      const availableProfiles = allUserProfiles
+      const availableProfiles = allProfiles
         .filter(p => p.userId !== currentUser.id && 
                   !swipedProfileIds.has(p.id) &&
                   !allRequestedIds.includes(p.userId));
       
       console.log(`Found ${availableProfiles.length} available profiles after filtering swiped and requested ones`);
-      
-      setAllProfiles(availableProfiles);
       
       setPotentialConnections(prevConnections => {
         if (prevConnections.length === 0) {
@@ -464,7 +154,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoadingProfiles(false);
     }
-  }, [currentUser, isLoadingProfiles, swipedProfileIds, allUserProfiles, matches, requestedUserIds]);
+  }, [currentUser, isLoadingProfiles, swipedProfileIds, allProfiles, matches, requestedUserIds]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -477,7 +167,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const hasCreatedProfile = localStorage.getItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`);
     
     // Find user's profile in all profiles
-    const userProfileData = allUserProfiles.find(p => p.userId === currentUser.id);
+    const userProfileData = allProfiles.find(p => p.userId === currentUser.id);
     
     if (userProfileData) {
       console.log('Found existing profile for user:', currentUser.id);
@@ -487,8 +177,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     // Get all connections except current user
-    const connections = allUserProfiles.filter(p => p.userId !== currentUser.id);
-    setAllProfiles(connections);
+    const connections = allProfiles.filter(p => p.userId !== currentUser.id);
     
     const savedSwipedIds = localStorage.getItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`);
     if (savedSwipedIds) {
@@ -514,7 +203,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (savedMatches) {
       setMatches(JSON.parse(savedMatches));
     }
-  }, [currentUser, allUserProfiles]);
+  }, [currentUser, allProfiles]);
 
   const createProfile = async (profileData: Omit<Profile, 'id' | 'userId'>) => {
     if (!currentUser) throw new Error('No user is logged in');
@@ -530,9 +219,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setUserProfile(newProfile);
     
     // Store in local profiles
-    const updatedProfiles = allUserProfiles.filter(p => p.userId !== currentUser.id);
+    const updatedProfiles = allProfiles.filter(p => p.userId !== currentUser.id);
     updatedProfiles.push(newProfile);
-    setAllUserProfiles(updatedProfiles);
+    setAllProfiles(updatedProfiles);
     
     // Save to localStorage
     localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
@@ -550,10 +239,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setUserProfile(updatedProfile);
     
-    const updatedProfiles = allUserProfiles.map(profile => 
+    const updatedProfiles = allProfiles.map(profile => 
       profile.userId === currentUser.id ? updatedProfile : profile
     );
-    setAllUserProfiles(updatedProfiles);
+    setAllProfiles(updatedProfiles);
     
     localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
   };
@@ -571,7 +260,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(`${STORAGE_KEYS.SWIPED}${currentUser.id}`, JSON.stringify([...newSwipedIds]));
 
       // Get the profile to update requested users tracking
-      const profileToSwipe = allUserProfiles.find(p => p.id === profileId);
+      const profileToSwipe = allProfiles.find(p => p.id === profileId);
       
       if (direction === 'right' && profileToSwipe) {
         // Track requested user
@@ -673,6 +362,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       setMatches(updatedMatches);
       localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
+      return true;
     } catch (error) {
       console.error("Error responding to connection request:", error);
       throw error;
@@ -695,7 +385,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
     
     return pendingRequests.map(connection => {
-      const profile = allUserProfiles.find(p => p.id === connection.userId);
+      const profile = allProfiles.find(p => p.userId === connection.userId);
       return {
         connection,
         profile: profile!
@@ -718,7 +408,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const otherPersonId = connection.userId === currentUser.id ? 
         connection.connectedUserId : connection.userId;
       
-      const profile = allUserProfiles.find(p => p.id === otherPersonId);
+      const profile = allProfiles.find(p => p.userId === otherPersonId);
       return {
         connection,
         profile: profile!

@@ -3,13 +3,28 @@ import { type Profile } from '@/context/ProfileContext';
 import { ExternalLink, MessageCircle, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useProfile } from '@/context/ProfileContext';
+import { useToast } from '@/components/ui/use-toast';
 
 interface MatchCardProps {
   profile: Profile;
   isConnected?: boolean;
+  connectionId?: string;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, connectionId }) => {
+  const { respondToRequest } = useProfile();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleMessageClick = () => {
+    toast({
+      title: "Message feature",
+      description: `Messaging ${profile.name} will be available soon`,
+    });
+  };
+  
   return (
     <div className="bg-card rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
       <div className="flex flex-col md:flex-row">
@@ -105,6 +120,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false }) =
               variant="default" 
               size="sm" 
               className="gap-2"
+              onClick={handleMessageClick}
             >
               <MessageCircle size={16} />
               Message
