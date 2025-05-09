@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      connections: {
+        Row: {
+          connected_user_id: string
+          created_at: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          connected_user_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          connected_user_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -32,6 +56,51 @@ export type Database = {
           message?: string
           read?: boolean
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          company: string | null
+          created_at: string
+          experience: string | null
+          id: string
+          industry: string | null
+          job_title: string | null
+          linkedin_url: string | null
+          name: string
+          profile_image: string | null
+          skills: Json | null
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          company?: string | null
+          created_at?: string
+          experience?: string | null
+          id?: string
+          industry?: string | null
+          job_title?: string | null
+          linkedin_url?: string | null
+          name: string
+          profile_image?: string | null
+          skills?: Json | null
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          company?: string | null
+          created_at?: string
+          experience?: string | null
+          id?: string
+          industry?: string | null
+          job_title?: string | null
+          linkedin_url?: string | null
+          name?: string
+          profile_image?: string | null
+          skills?: Json | null
           user_id?: string
         }
         Relationships: []
