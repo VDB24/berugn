@@ -76,11 +76,80 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [requestedUserIds, setRequestedUserIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
+  const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
-  // Load user profiles from localStorage
+  // Load user profiles from Supabase
   useEffect(() => {
+    const fetchAllProfiles = async () => {
+      try {
+        // In a real app, this would fetch from Supabase
+        // For now, we'll simulate fetching profiles that would be in the database
+        const mockProfiles: Profile[] = [
+          {
+            id: `profile_1`,
+            userId: 'user_1',
+            name: 'Alex Johnson',
+            jobTitle: 'Software Engineer',
+            company: 'Tech Solutions Inc.',
+            industry: 'Technology',
+            skills: [
+              { id: 'skill_1', name: 'JavaScript' },
+              { id: 'skill_2', name: 'React' },
+              { id: 'skill_3', name: 'Node.js' }
+            ],
+            experience: '5-10 years',
+            bio: 'Passionate about building scalable web applications and mentoring junior developers.',
+            profileImage: 'https://i.pravatar.cc/300?img=11'
+          },
+          {
+            id: `profile_2`,
+            userId: 'user_2',
+            name: 'Jamie Smith',
+            jobTitle: 'Product Manager',
+            company: 'InnovateCo',
+            industry: 'Product Management',
+            skills: [
+              { id: 'skill_4', name: 'Agile' },
+              { id: 'skill_5', name: 'User Research' },
+              { id: 'skill_6', name: 'Roadmapping' }
+            ],
+            experience: '3-5 years',
+            bio: 'Focused on delivering user-centric products that solve real problems.',
+            profileImage: 'https://i.pravatar.cc/300?img=12'
+          },
+          {
+            id: `profile_3`,
+            userId: 'user_3',
+            name: 'Jordan Lee',
+            jobTitle: 'UI/UX Designer',
+            company: 'Design Forward',
+            industry: 'Design',
+            skills: [
+              { id: 'skill_7', name: 'Figma' },
+              { id: 'skill_8', name: 'User Testing' },
+              { id: 'skill_9', name: 'Wireframing' }
+            ],
+            experience: '1-3 years',
+            bio: 'Creating delightful digital experiences through thoughtful design solutions.',
+            profileImage: 'https://i.pravatar.cc/300?img=13'
+          }
+        ];
+        
+        setAllProfiles(mockProfiles);
+        console.log('Loaded profiles:', mockProfiles.length);
+        
+        // Save to localStorage for persistence across refreshes
+        localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(mockProfiles));
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+      }
+    };
+    
+    // Only load mock data if there are no profiles in localStorage yet
     const storedProfiles = localStorage.getItem(STORAGE_KEYS.USER_PROFILES);
-    if (storedProfiles) {
+    if (!storedProfiles) {
+      fetchAllProfiles();
+    } else {
       try {
         const parsedProfiles = JSON.parse(storedProfiles);
         setAllProfiles(parsedProfiles);
@@ -89,6 +158,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.error('Error parsing stored profiles:', error);
       }
     }
+    
+    setIsInitialDataLoaded(true);
   }, []);
 
   // Load requested users from localStorage
@@ -156,7 +227,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [currentUser, isLoadingProfiles, swipedProfileIds, allProfiles, matches, requestedUserIds]);
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser || !isInitialDataLoaded) {
       return;
     }
     
@@ -202,7 +273,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (savedMatches) {
       setMatches(JSON.parse(savedMatches));
     }
-  }, [currentUser, allProfiles]);
+  }, [currentUser, allProfiles, isInitialDataLoaded]);
 
   const createProfile = async (profileData: Omit<Profile, 'id' | 'userId'>) => {
     if (!currentUser) throw new Error('No user is logged in');
