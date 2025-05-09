@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 interface Skill {
   id: string;
@@ -69,7 +70,9 @@ const mapSupabaseProfile = (profile: any): Profile => ({
   jobTitle: profile.job_title || 'Not specified',
   company: profile.company,
   industry: profile.industry || 'Not specified',
-  skills: profile.skills || [],
+  skills: Array.isArray(profile.skills) ? profile.skills : 
+          (typeof profile.skills === 'string' ? JSON.parse(profile.skills) : 
+          (profile.skills ? JSON.parse(JSON.stringify(profile.skills)) : [])),
   experience: profile.experience || 'Not specified',
   bio: profile.bio || 'No bio provided',
   linkedInUrl: profile.linkedin_url,
@@ -308,7 +311,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       // Convert skills array to a format compatible with Supabase JSON column
-      const skillsJson = JSON.stringify(profileData.skills);
+      const skillsJson = profileData.skills as unknown as Json;
 
       // Create profile in Supabase
       const { data, error } = await supabase
@@ -363,7 +366,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       // Convert skills array to a format compatible with Supabase JSON column if present
-      const skillsJson = profileData.skills ? JSON.stringify(profileData.skills) : undefined;
+      const skillsJson = profileData.skills ? (profileData.skills as unknown as Json) : undefined;
 
       // Update profile in Supabase
       const { error } = await supabase
