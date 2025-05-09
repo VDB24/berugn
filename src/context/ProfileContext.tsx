@@ -162,10 +162,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.log("Loading more profiles...");
       
       // Get connection IDs that the current user has already interacted with
-      const { data: connectionsData } = await supabase
+      const { data: connectionsData, error } = await supabase
         .from('connections')
         .select('*')
         .or(`user_id.eq.${currentUser.id},connected_user_id.eq.${currentUser.id}`);
+      
+      if (error) throw error;
       
       // Extract all user IDs that the current user has already connected with
       let connectedUserIds: string[] = [];
@@ -305,6 +307,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!currentUser) throw new Error('No user is logged in');
 
     try {
+      // Convert skills array to a format compatible with Supabase JSON column
+      const skillsJson = JSON.stringify(profileData.skills);
+
       // Create profile in Supabase
       const { data, error } = await supabase
         .from('profiles')
@@ -314,7 +319,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           job_title: profileData.jobTitle,
           company: profileData.company,
           industry: profileData.industry,
-          skills: profileData.skills,
+          skills: skillsJson,
           experience: profileData.experience,
           bio: profileData.bio,
           linkedin_url: profileData.linkedInUrl,
@@ -357,6 +362,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!currentUser || !userProfile) throw new Error('No user profile found');
 
     try {
+      // Convert skills array to a format compatible with Supabase JSON column if present
+      const skillsJson = profileData.skills ? JSON.stringify(profileData.skills) : undefined;
+
       // Update profile in Supabase
       const { error } = await supabase
         .from('profiles')
@@ -365,7 +373,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           job_title: profileData.jobTitle || userProfile.jobTitle,
           company: profileData.company || userProfile.company,
           industry: profileData.industry || userProfile.industry,
-          skills: profileData.skills || userProfile.skills,
+          skills: skillsJson,
           experience: profileData.experience || userProfile.experience,
           bio: profileData.bio || userProfile.bio,
           linkedin_url: profileData.linkedInUrl || userProfile.linkedInUrl,
@@ -557,7 +565,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (match.id === connectionId) {
           return {
             ...match,
-            status: accept ? 'connected' : 'rejected'
+            status: accept ? 'connected' as const : 'rejected' as const
           };
         }
         return match;
