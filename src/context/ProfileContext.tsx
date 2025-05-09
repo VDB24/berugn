@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -362,7 +361,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       setMatches(updatedMatches);
       localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
-      return true;
     } catch (error) {
       console.error("Error responding to connection request:", error);
       throw error;
