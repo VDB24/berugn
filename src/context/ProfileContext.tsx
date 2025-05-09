@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,88 +79,56 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
-  // Load user profiles from Supabase
+  // Fetch real user profiles from Supabase
   useEffect(() => {
     const fetchAllProfiles = async () => {
       try {
-        // In a real app, this would fetch from Supabase
-        // For now, we'll simulate fetching profiles that would be in the database
-        const mockProfiles: Profile[] = [
-          {
-            id: `profile_1`,
-            userId: 'user_1',
-            name: 'Alex Johnson',
-            jobTitle: 'Software Engineer',
-            company: 'Tech Solutions Inc.',
-            industry: 'Technology',
-            skills: [
-              { id: 'skill_1', name: 'JavaScript' },
-              { id: 'skill_2', name: 'React' },
-              { id: 'skill_3', name: 'Node.js' }
-            ],
-            experience: '5-10 years',
-            bio: 'Passionate about building scalable web applications and mentoring junior developers.',
-            profileImage: 'https://i.pravatar.cc/300?img=11'
-          },
-          {
-            id: `profile_2`,
-            userId: 'user_2',
-            name: 'Jamie Smith',
-            jobTitle: 'Product Manager',
-            company: 'InnovateCo',
-            industry: 'Product Management',
-            skills: [
-              { id: 'skill_4', name: 'Agile' },
-              { id: 'skill_5', name: 'User Research' },
-              { id: 'skill_6', name: 'Roadmapping' }
-            ],
-            experience: '3-5 years',
-            bio: 'Focused on delivering user-centric products that solve real problems.',
-            profileImage: 'https://i.pravatar.cc/300?img=12'
-          },
-          {
-            id: `profile_3`,
-            userId: 'user_3',
-            name: 'Jordan Lee',
-            jobTitle: 'UI/UX Designer',
-            company: 'Design Forward',
-            industry: 'Design',
-            skills: [
-              { id: 'skill_7', name: 'Figma' },
-              { id: 'skill_8', name: 'User Testing' },
-              { id: 'skill_9', name: 'Wireframing' }
-            ],
-            experience: '1-3 years',
-            bio: 'Creating delightful digital experiences through thoughtful design solutions.',
-            profileImage: 'https://i.pravatar.cc/300?img=13'
-          }
-        ];
+        // Get all profiles from Supabase
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('*');
         
-        setAllProfiles(mockProfiles);
-        console.log('Loaded profiles:', mockProfiles.length);
+        if (error) {
+          throw error;
+        }
+
+        // Map Supabase profiles to our Profile interface
+        const mappedProfiles: Profile[] = profiles.map((profile: any) => ({
+          id: profile.id,
+          userId: profile.user_id || profile.id, // Use user_id if available, fallback to id
+          name: profile.name || profile.full_name || 'Anonymous User',
+          jobTitle: profile.job_title || 'Not specified',
+          company: profile.company,
+          industry: profile.industry || 'Not specified',
+          skills: profile.skills || [],
+          experience: profile.experience || 'Not specified',
+          bio: profile.bio || 'No bio provided',
+          linkedInUrl: profile.linkedin_url,
+          profileImage: profile.profile_image
+        }));
         
-        // Save to localStorage for persistence across refreshes
-        localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(mockProfiles));
+        setAllProfiles(mappedProfiles);
+        console.log('Loaded profiles from Supabase:', mappedProfiles.length);
       } catch (error) {
-        console.error('Error fetching profiles:', error);
+        console.error('Error fetching profiles from Supabase:', error);
+        
+        // Fallback to localStorage if Supabase fetch fails
+        const storedProfiles = localStorage.getItem(STORAGE_KEYS.USER_PROFILES);
+        if (storedProfiles) {
+          try {
+            const parsedProfiles = JSON.parse(storedProfiles);
+            setAllProfiles(parsedProfiles);
+            console.log('Loaded profiles from localStorage fallback:', parsedProfiles.length);
+          } catch (error) {
+            console.error('Error parsing stored profiles:', error);
+          }
+        }
+      } finally {
+        setIsInitialDataLoaded(true);
       }
     };
     
-    // Only load mock data if there are no profiles in localStorage yet
-    const storedProfiles = localStorage.getItem(STORAGE_KEYS.USER_PROFILES);
-    if (!storedProfiles) {
-      fetchAllProfiles();
-    } else {
-      try {
-        const parsedProfiles = JSON.parse(storedProfiles);
-        setAllProfiles(parsedProfiles);
-        console.log('Loaded profiles from storage:', parsedProfiles.length);
-      } catch (error) {
-        console.error('Error parsing stored profiles:', error);
-      }
-    }
-    
-    setIsInitialDataLoaded(true);
+    fetchAllProfiles();
   }, []);
 
   // Load requested users from localStorage
@@ -233,17 +202,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     console.log('Loading user data for:', currentUser.id);
     
-    // Check if user has created a profile before
-    const hasCreatedProfile = localStorage.getItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`);
-    
     // Find user's profile in all profiles
     const userProfileData = allProfiles.find(p => p.userId === currentUser.id);
     
     if (userProfileData) {
       console.log('Found existing profile for user:', currentUser.id);
       setUserProfile(userProfileData);
-    } else if (hasCreatedProfile) {
-      console.log('User has created a profile before, but profile not found');
     }
 
     // Get all connections except current user
@@ -269,52 +233,184 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setPreferences(JSON.parse(savedPreferences));
     }
 
-    const savedMatches = localStorage.getItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`);
-    if (savedMatches) {
-      setMatches(JSON.parse(savedMatches));
-    }
+    // Load connections from Supabase
+    const fetchConnections = async () => {
+      try {
+        // Get all connections where the current user is either the requester or the requested
+        const { data, error } = await supabase
+          .from('connections')
+          .select('*')
+          .or(`userId.eq.${currentUser.id},connectedUserId.eq.${currentUser.id}`);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          // Map Supabase connections to our Connection interface
+          const mappedConnections: Connection[] = data.map((conn: any) => ({
+            id: conn.id,
+            userId: conn.user_id,
+            connectedUserId: conn.connected_user_id,
+            status: conn.status,
+            createdAt: conn.created_at
+          }));
+          
+          setMatches(mappedConnections);
+          console.log('Loaded connections from Supabase:', mappedConnections.length);
+        } else {
+          // Fallback to localStorage if no connections in Supabase
+          const savedMatches = localStorage.getItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`);
+          if (savedMatches) {
+            setMatches(JSON.parse(savedMatches));
+            console.log('Loaded connections from localStorage fallback');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching connections from Supabase:', error);
+        
+        // Fallback to localStorage if Supabase fetch fails
+        const savedMatches = localStorage.getItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`);
+        if (savedMatches) {
+          setMatches(JSON.parse(savedMatches));
+          console.log('Loaded connections from localStorage fallback');
+        }
+      }
+    };
+    
+    fetchConnections();
   }, [currentUser, allProfiles, isInitialDataLoaded]);
 
   const createProfile = async (profileData: Omit<Profile, 'id' | 'userId'>) => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    await new Promise(resolve => setTimeout(resolve, 500)); // Shorter delay for better UX
+    try {
+      // Create profile in Supabase
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: currentUser.id,
+          name: profileData.name,
+          job_title: profileData.jobTitle,
+          company: profileData.company,
+          industry: profileData.industry,
+          skills: profileData.skills,
+          experience: profileData.experience,
+          bio: profileData.bio,
+          linkedin_url: profileData.linkedInUrl,
+          profile_image: profileData.profileImage
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      const newProfile: Profile = {
+        id: data.id,
+        userId: currentUser.id,
+        name: profileData.name,
+        jobTitle: profileData.jobTitle,
+        company: profileData.company,
+        industry: profileData.industry,
+        skills: profileData.skills,
+        experience: profileData.experience,
+        bio: profileData.bio,
+        linkedInUrl: profileData.linkedInUrl,
+        profileImage: profileData.profileImage
+      };
 
-    const newProfile: Profile = {
-      id: `profile_${Date.now()}`,
-      userId: currentUser.id,
-      ...profileData
-    };
+      setUserProfile(newProfile);
+      
+      // Update local profiles list
+      const updatedProfiles = allProfiles.filter(p => p.userId !== currentUser.id);
+      updatedProfiles.push(newProfile);
+      setAllProfiles(updatedProfiles);
+      
+      // Save to localStorage as backup
+      localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+      localStorage.setItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`, 'true');
+      
+      console.log("Profile created and saved to Supabase:", newProfile);
+    } catch (error) {
+      console.error("Error creating profile in Supabase:", error);
+      
+      // Fallback to local storage if Supabase fails
+      const newProfile: Profile = {
+        id: `profile_${Date.now()}`,
+        userId: currentUser.id,
+        ...profileData
+      };
 
-    setUserProfile(newProfile);
-    
-    // Store in local profiles
-    const updatedProfiles = allProfiles.filter(p => p.userId !== currentUser.id);
-    updatedProfiles.push(newProfile);
-    setAllProfiles(updatedProfiles);
-    
-    // Save to localStorage
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
-    localStorage.setItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`, 'true');
-    
-    console.log("Profile created and saved:", newProfile);
+      setUserProfile(newProfile);
+      
+      // Store in local profiles
+      const updatedProfiles = allProfiles.filter(p => p.userId !== currentUser.id);
+      updatedProfiles.push(newProfile);
+      setAllProfiles(updatedProfiles);
+      
+      // Save to localStorage
+      localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+      localStorage.setItem(`${STORAGE_KEYS.CREATED_PROFILE}${currentUser.id}`, 'true');
+      
+      console.log("Profile created and saved locally (Supabase failed):", newProfile);
+    }
   };
 
   const updateProfile = async (profileData: Partial<Profile>) => {
     if (!currentUser || !userProfile) throw new Error('No user profile found');
 
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const updatedProfile = { ...userProfile, ...profileData };
-
-    setUserProfile(updatedProfile);
-    
-    const updatedProfiles = allProfiles.map(profile => 
-      profile.userId === currentUser.id ? updatedProfile : profile
-    );
-    setAllProfiles(updatedProfiles);
-    
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+    try {
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: profileData.name || userProfile.name,
+          job_title: profileData.jobTitle || userProfile.jobTitle,
+          company: profileData.company || userProfile.company,
+          industry: profileData.industry || userProfile.industry,
+          skills: profileData.skills || userProfile.skills,
+          experience: profileData.experience || userProfile.experience,
+          bio: profileData.bio || userProfile.bio,
+          linkedin_url: profileData.linkedInUrl || userProfile.linkedInUrl,
+          profile_image: profileData.profileImage || userProfile.profileImage
+        })
+        .eq('user_id', currentUser.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      const updatedProfile = { ...userProfile, ...profileData };
+      setUserProfile(updatedProfile);
+      
+      // Update local profiles list
+      const updatedProfiles = allProfiles.map(profile => 
+        profile.userId === currentUser.id ? updatedProfile : profile
+      );
+      setAllProfiles(updatedProfiles);
+      
+      // Update localStorage as backup
+      localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+      
+      console.log("Profile updated in Supabase:", updatedProfile);
+    } catch (error) {
+      console.error("Error updating profile in Supabase:", error);
+      
+      // Fallback to localStorage if Supabase update fails
+      const updatedProfile = { ...userProfile, ...profileData };
+      setUserProfile(updatedProfile);
+      
+      const updatedProfiles = allProfiles.map(profile => 
+        profile.userId === currentUser.id ? updatedProfile : profile
+      );
+      setAllProfiles(updatedProfiles);
+      
+      localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(updatedProfiles));
+      
+      console.log("Profile updated locally (Supabase failed):", updatedProfile);
+    }
   };
 
   const swipeProfile = async (profileId: string, direction: 'left' | 'right') => {
@@ -323,6 +419,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     console.log(`Starting swipe for profile ${profileId} in direction ${direction}`);
     
     try {
+      // Track swiped profile
       const newSwipedIds = new Set(swipedProfileIds);
       newSwipedIds.add(profileId);
       setSwipedProfileIds(newSwipedIds);
@@ -343,36 +440,82 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           JSON.stringify([...newRequestedIds])
         );
 
-        const newConnection: Connection = {
-          id: `connection_${Date.now()}`,
-          userId: currentUser.id,
-          connectedUserId: profileToSwipe.userId,
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        };
-        
-        const updatedMatches = [...matches, newConnection];
-        setMatches(updatedMatches);
-        localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
-
-        // Check if other user has already requested a connection to simulate match
-        const existingRequest = matches.find(
-          m => m.userId === profileToSwipe.userId && m.connectedUserId === currentUser.id && m.status === 'pending'
-        );
-        
-        if (existingRequest) {
-          // Update existing request to 'connected'
-          const updatedExistingRequest: Connection = {
-            ...existingRequest,
-            status: 'connected'
+        // Create connection in Supabase
+        try {
+          const { data, error } = await supabase
+            .from('connections')
+            .insert({
+              user_id: currentUser.id,
+              connected_user_id: profileToSwipe.userId,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+          
+          if (error) {
+            throw error;
+          }
+          
+          // Map Supabase connection to our Connection interface
+          const newConnection: Connection = {
+            id: data.id,
+            userId: currentUser.id,
+            connectedUserId: profileToSwipe.userId,
+            status: 'pending',
+            createdAt: data.created_at
           };
           
-          const finalMatches = updatedMatches.map(m => 
-            m.id === existingRequest.id ? updatedExistingRequest : m
+          // Check if the other user has already sent a request to create a match
+          const existingRequest = matches.find(
+            m => m.userId === profileToSwipe.userId && m.connectedUserId === currentUser.id && m.status === 'pending'
           );
           
-          setMatches(finalMatches);
-          localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(finalMatches));
+          if (existingRequest) {
+            // Update existing request to 'connected' in Supabase
+            const { error: updateError } = await supabase
+              .from('connections')
+              .update({ status: 'connected' })
+              .eq('id', existingRequest.id);
+            
+            if (updateError) {
+              throw updateError;
+            }
+            
+            // Update local matches
+            const updatedExistingRequest: Connection = {
+              ...existingRequest,
+              status: 'connected'
+            };
+            
+            const updatedMatches = matches.map(m => 
+              m.id === existingRequest.id ? updatedExistingRequest : m
+            );
+            
+            updatedMatches.push(newConnection);
+            setMatches(updatedMatches);
+            localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
+          } else {
+            // Simply add the new connection if no match
+            const updatedMatches = [...matches, newConnection];
+            setMatches(updatedMatches);
+            localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
+          }
+        } catch (error) {
+          console.error("Error creating connection in Supabase:", error);
+          
+          // Fallback to localStorage if Supabase fails
+          const newConnection: Connection = {
+            id: `connection_${Date.now()}`,
+            userId: currentUser.id,
+            connectedUserId: profileToSwipe.userId,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          };
+          
+          const updatedMatches = [...matches, newConnection];
+          setMatches(updatedMatches);
+          localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
         }
       }
       
@@ -406,8 +549,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updatePreferences = async (newPreferences: Partial<Preference>) => {
     if (!currentUser) throw new Error('No user is logged in');
 
-    await new Promise(resolve => setTimeout(resolve, 500));
-
     const updatedPreferences = { ...preferences, ...newPreferences };
     
     setPreferences(updatedPreferences);
@@ -420,6 +561,17 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!currentUser) throw new Error('No user is logged in');
     
     try {
+      // Update connection status in Supabase
+      const { error } = await supabase
+        .from('connections')
+        .update({ status: accept ? 'connected' : 'rejected' })
+        .eq('id', connectionId);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
       const updatedMatches = matches.map(match => {
         if (match.id === connectionId) {
           return {
@@ -432,9 +584,23 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       setMatches(updatedMatches);
       localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
+      console.log(`Connection ${connectionId} updated to ${accept ? 'connected' : 'rejected'}`);
     } catch (error) {
-      console.error("Error responding to connection request:", error);
-      throw error;
+      console.error("Error updating connection in Supabase:", error);
+      
+      // Fallback to localStorage if Supabase fails
+      const updatedMatches = matches.map(match => {
+        if (match.id === connectionId) {
+          return {
+            ...match,
+            status: accept ? 'connected' as const : 'rejected' as const
+          };
+        }
+        return match;
+      });
+      
+      setMatches(updatedMatches);
+      localStorage.setItem(`${STORAGE_KEYS.MATCHES}${currentUser.id}`, JSON.stringify(updatedMatches));
     }
   };
 
