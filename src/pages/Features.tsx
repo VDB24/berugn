@@ -1,39 +1,49 @@
+
 import React from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Briefcase, Users, MessageSquare, Filter, Bell, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
 const Features = () => {
-  const {
-    currentUser
-  } = useAuth();
-  const features = [{
-    icon: <Briefcase className="h-8 w-8 text-primary" />,
-    title: "Professional Profiles",
-    description: "Create a detailed profile showcasing your professional experience, skills, and career goals to attract the right connections."
-  }, {
-    icon: <Users className="h-8 w-8 text-primary" />,
-    title: "Intuitive Matching",
-    description: "Our card-swiping interface makes it easy to browse potential connections - swipe right to connect, left to pass."
-  }, {
-    icon: <MessageSquare className="h-8 w-8 text-primary" />,
-    title: "Direct Messaging",
-    description: "Once matched, communicate directly with your new connections to establish a professional relationship."
-  }, {
-    icon: <Filter className="h-8 w-8 text-primary" />,
-    title: "Advanced Filters",
-    description: "Set preferences for industry, experience level, location, and more to find the most relevant connections."
-  }, {
-    icon: <Bell className="h-8 w-8 text-primary" />,
-    title: "Smart Notifications",
-    description: "Stay updated with timely alerts about new matches, messages, and network opportunities."
-  }, {
-    icon: <Shield className="h-8 w-8 text-primary" />,
-    title: "Privacy Controls",
-    description: "Robust privacy settings let you control who sees your profile and how much information is shared."
-  }];
-  return <div className="min-h-screen flex flex-col">
+  const { currentUser } = useAuth();
+  
+  const features = [
+    {
+      icon: <Briefcase className="h-8 w-8 text-primary" />,
+      title: "Professional Profiles",
+      description: "Create a detailed profile showcasing your professional experience, skills, and career goals to attract the right connections."
+    },
+    {
+      icon: <Users className="h-8 w-8 text-primary" />,
+      title: "Intuitive Matching",
+      description: "Our card-swiping interface makes it easy to browse potential connections - swipe right to connect, left to pass."
+    },
+    {
+      icon: <MessageSquare className="h-8 w-8 text-primary" />,
+      title: "Direct Messaging",
+      description: "Once matched, communicate directly with your new connections to establish a professional relationship."
+    },
+    {
+      icon: <Filter className="h-8 w-8 text-primary" />,
+      title: "Advanced Filters",
+      description: "Set preferences for industry, experience level, location, and more to find the most relevant connections."
+    },
+    {
+      icon: <Bell className="h-8 w-8 text-primary" />,
+      title: "Smart Notifications",
+      description: "Stay updated with timely alerts about new matches, messages, and network opportunities."
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-primary" />,
+      title: "Privacy Controls",
+      description: "Robust privacy settings let you control who sees your profile and how much information is shared."
+    }
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col">
       <Header />
       
       {/* Hero section */}
@@ -63,17 +73,21 @@ const Features = () => {
               </div>
               
               <div className="pt-4">
-                {currentUser ? <Link to="/browse">
+                {currentUser ? (
+                  <Link to="/browse">
                     <Button size="lg" className="gap-2">
                       Start browsing
                       <ArrowRight size={16} />
                     </Button>
-                  </Link> : <Link to="/register">
+                  </Link>
+                ) : (
+                  <Link to="/register">
                     <Button size="lg" className="gap-2">
                       Try it free
                       <ArrowRight size={16} />
                     </Button>
-                  </Link>}
+                  </Link>
+                )}
               </div>
             </div>
             <div className="rounded-xl bg-card p-8 shadow-lg border">
@@ -96,7 +110,8 @@ const Features = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => <div key={index} className="flex flex-col p-6 rounded-xl bg-card shadow-sm border">
+            {features.map((feature, index) => (
+              <div key={index} className="flex flex-col p-6 rounded-xl bg-card shadow-sm border">
                 <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                   {feature.icon}
                 </div>
@@ -104,7 +119,8 @@ const Features = () => {
                 <p className="text-muted-foreground text-sm flex-1">
                   {feature.description}
                 </p>
-              </div>)}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -113,9 +129,9 @@ const Features = () => {
       <section className="py-16 md:py-24 bg-muted/50">
         <div className="container px-4 md:px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose SyncIn?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Berugn?</h2>
             <p className="text-muted-foreground md:text-lg max-w-[700px] mx-auto">
-              See how SyncIn compares to traditional networking platforms
+              See how Berugn compares to traditional networking platforms
             </p>
           </div>
           
@@ -124,7 +140,7 @@ const Features = () => {
               <thead>
                 <tr>
                   <th className="p-4 text-left">Features</th>
-                  <th className="p-4 text-center bg-primary/10 rounded-tl-lg">SyncIn</th>
+                  <th className="p-4 text-center bg-primary/10 rounded-tl-lg">Berugn</th>
                   <th className="p-4 text-center">Traditional Platforms</th>
                 </tr>
               </thead>
@@ -168,20 +184,24 @@ const Features = () => {
               Ready to experience better networking?
             </h2>
             <p className="text-muted-foreground md:text-lg mb-8">
-              Join thousands of professionals who are building meaningful connections on SyncIn.
+              Join thousands of professionals who are building meaningful connections on Berugn.
             </p>
             
-            {currentUser ? <Link to="/browse">
+            {currentUser ? (
+              <Link to="/browse">
                 <Button size="lg" className="gap-2">
                   Start browsing
                   <ArrowRight size={16} />
                 </Button>
-              </Link> : <Link to="/register">
+              </Link>
+            ) : (
+              <Link to="/register">
                 <Button size="lg" className="gap-2">
                   Sign up free
                   <ArrowRight size={16} />
                 </Button>
-              </Link>}
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -190,7 +210,7 @@ const Features = () => {
       <footer className="border-t py-8 mt-auto">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-2">SyncIn</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-2">Berugn</span>
             <p className="text-sm text-muted-foreground mb-4">
               Professional networking reimagined
             </p>
@@ -211,6 +231,8 @@ const Features = () => {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Features;

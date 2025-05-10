@@ -11,13 +11,14 @@ const About = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Header />
       <div className="flex-1">
         {/* Hero section */}
         <section className="py-12 md:py-24 lg:py-32 bg-muted/50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 mb-8">
               <h1 className="text-3xl md:text-5xl font-bold tracking-tighter">
-                About SyncIn
+                About Berugn
               </h1>
               <p className="text-muted-foreground md:text-xl max-w-[700px]">
                 We're revolutionizing professional networking by helping people build meaningful connections.
@@ -28,7 +29,7 @@ const About = () => {
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Our Mission</h2>
                 <p className="text-muted-foreground mb-4">
-                  At SyncIn, we believe that professional networking should be intuitive, focused, and valuable. Our mission 
+                  At Berugn, we believe that professional networking should be intuitive, focused, and valuable. Our mission 
                   is to connect professionals who can truly help each other grow in their careers.
                 </p>
                 <p className="text-muted-foreground mb-4">
@@ -38,7 +39,7 @@ const About = () => {
                 {!currentUser && (
                   <Link to="/register">
                     <Button size="lg" className="gap-2 mt-4">
-                      Join SyncIn today
+                      Join Berugn today
                       <ArrowRight size={16} />
                     </Button>
                   </Link>
@@ -46,7 +47,7 @@ const About = () => {
               </div>
               <div className="rounded-xl bg-card p-6 shadow-lg border">
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Why SyncIn Works</h3>
+                  <h3 className="text-xl font-semibold">Why Berugn Works</h3>
                   <ul className="space-y-4">
                     <li className="flex gap-3">
                       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -134,7 +135,7 @@ const About = () => {
                 Ready to transform your professional network?
               </h2>
               <p className="text-muted-foreground md:text-lg mb-8">
-                Join SyncIn today and discover connections that can help advance your career.
+                Join Berugn today and discover connections that can help advance your career.
               </p>
               
               {currentUser ? (
@@ -161,7 +162,7 @@ const About = () => {
       <footer className="border-t py-8 mt-auto">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-2">SyncIn</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-2">Berugn</span>
             <p className="text-sm text-muted-foreground mb-4">
               Professional networking reimagined
             </p>
