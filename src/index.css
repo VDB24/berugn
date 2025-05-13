@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -93,7 +94,7 @@
   }
   
   .glass-card {
-    @apply bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg border border-white/30 dark:border-white/10 shadow-xl rounded-2xl;
+    @apply bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg border border-white/30 dark:border-white/10 shadow-xl rounded-2xl transition-all duration-300 hover:shadow-2xl;
   }
   
   .text-balance {
@@ -109,7 +110,7 @@
   }
   
   .premium-card {
-    @apply rounded-2xl border bg-card shadow-md transition-all duration-300 hover:shadow-lg;
+    @apply rounded-2xl border bg-card shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
 
   .neon-glow {
@@ -127,6 +128,35 @@
   .neon-input {
     @apply bg-black/50 border border-secondary/50 focus:border-secondary text-white rounded-full px-4 py-2 focus:outline-none;
     box-shadow: 0 0 5px theme('colors.secondary.DEFAULT');
+  }
+  
+  .animated-gradient {
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+  
+  .smooth-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+  }
+  
+  .floating {
+    animation: floating 3s ease-in-out infinite;
+  }
+  
+  @keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 }
 
@@ -157,4 +187,34 @@
 
 .premium-button {
   @apply relative overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg before:absolute before:w-full before:h-full before:left-0 before:top-0 before:bg-white/10 before:scale-x-0 before:origin-right hover:before:scale-x-100 hover:before:origin-left before:transition-transform before:duration-300;
+}
+
+/* Enhanced button interactions */
+button {
+  @apply transition-all duration-200;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Enhanced form inputs */
+input, textarea, select {
+  @apply transition-all duration-200;
+}
+
+/* Enhance list animations */
+.list-item-appear {
+  animation: list-item-appear 0.4s ease-out forwards;
+}
+
+@keyframes list-item-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

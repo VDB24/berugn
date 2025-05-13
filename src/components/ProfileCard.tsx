@@ -1,4 +1,5 @@
 
+
 import { useState, useRef, useEffect } from 'react';
 import { type Profile } from '@/context/ProfileContext';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +28,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     if (cardRef.current) {
       cardRef.current.style.transform = 'translateX(-100%) rotate(-12deg)';
       cardRef.current.style.opacity = '0';
-      cardRef.current.style.transition = 'transform 0.6s ease-out, opacity 0.6s ease-out';
+      cardRef.current.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease-out';
     }
     
     setTimeout(() => {
@@ -47,7 +48,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     if (cardRef.current) {
       cardRef.current.style.transform = 'translateX(100%) rotate(12deg)';
       cardRef.current.style.opacity = '0';
-      cardRef.current.style.transition = 'transform 0.6s ease-out, opacity 0.6s ease-out';
+      cardRef.current.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease-out';
     }
     
     setTimeout(() => {
@@ -70,7 +71,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     <div className="card-swipe-container w-full max-w-sm mx-auto">
       <div
         ref={cardRef}
-        className="card-shadow bg-white dark:bg-gray-800 rounded-xl overflow-hidden transition-all duration-300"
+        className="card-shadow bg-white dark:bg-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl"
       >
         {/* Swipe indicators */}
         {swipeIndicator === 'left' && (
@@ -85,12 +86,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         )}
 
         {/* Profile image */}
-        <div className="relative h-72 w-full bg-gray-100">
+        <div className="relative h-72 w-full bg-gray-100 overflow-hidden">
           {profile.profileImage ? (
             <img
               src={profile.profileImage}
               alt={profile.name}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transform transition-transform duration-700 hover:scale-105"
               loading="lazy"
             />
           ) : (
@@ -108,15 +109,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
 
         {/* Profile info */}
-        <div className="p-6">
+        <div className="p-6 backdrop-blur-sm bg-white/80 dark:bg-gray-800/80">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold">{profile.name}</h2>
+            <h2 className="text-xl font-bold hover-lift">{profile.name}</h2>
             {profile.linkedInUrl && (
               <a
                 href={profile.linkedInUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 transition-colors"
+                className="text-primary hover:text-primary/80 transition-colors hover:scale-110 transform transition-transform"
               >
                 <ExternalLink size={18} />
               </a>
@@ -128,17 +129,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </p>
 
           <div className="mb-4">
-            <Badge variant="outline" className="mr-2 mb-2">
+            <Badge variant="outline" className="mr-2 mb-2 hover-lift">
               {profile.industry}
             </Badge>
-            <Badge variant="outline" className="mr-2 mb-2">
+            <Badge variant="outline" className="mr-2 mb-2 hover-lift">
               {profile.experience}
             </Badge>
           </div>
 
           <div className="mb-4 flex flex-wrap gap-1">
             {profile.skills.map((skill) => (
-              <Badge key={skill.id} variant="secondary" className="mr-1 mb-1">
+              <Badge key={skill.id} variant="secondary" className="mr-1 mb-1 hover-lift">
                 {skill.name}
               </Badge>
             ))}
@@ -153,7 +154,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <div className="flex justify-center items-center gap-4 mt-6">
           <button
             onClick={handleLeftClick}
-            className="h-14 w-14 flex items-center justify-center rounded-full bg-destructive/10 text-destructive transition-transform hover:scale-110"
+            className="h-14 w-14 flex items-center justify-center rounded-full bg-destructive/10 text-destructive transition-all duration-300 hover:scale-110 hover:bg-destructive/20 active:scale-95"
             aria-label="Pass"
           >
             <XCircle size={30} />
@@ -162,7 +163,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           {onSuperConnect && (
             <button
               onClick={handleSuperConnectClick}
-              className="h-12 w-12 flex items-center justify-center rounded-full bg-secondary/10 text-secondary transition-transform hover:scale-110"
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-secondary/10 text-secondary transition-all duration-300 hover:scale-110 hover:bg-secondary/20 active:scale-95"
               aria-label="Super Connect"
             >
               <Star size={26} />
@@ -171,7 +172,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           <button
             onClick={handleRightClick}
-            className="h-14 w-14 flex items-center justify-center rounded-full bg-success/10 text-success transition-transform hover:scale-110"
+            className="h-14 w-14 flex items-center justify-center rounded-full bg-success/10 text-success transition-all duration-300 hover:scale-110 hover:bg-success/20 active:scale-95"
             aria-label="Connect"
           >
             <CheckCircle size={30} />
@@ -183,3 +184,4 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 };
 
 export default ProfileCard;
+
