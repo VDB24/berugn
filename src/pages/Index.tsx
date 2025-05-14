@@ -14,9 +14,11 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      {/* Hero Section */}
+      {/* Hero Section - Improved background */}
       <section className="pt-32 pb-16 md:pt-40 md:pb-24 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-[120%] bg-gradient-to-b from-primary/5 to-transparent -z-10"></div>
+        {/* Replace the gray background with a more appealing gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-background to-background/80 -z-10"></div>
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.15),transparent_70%)] -z-10"></div>
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold bg-secondary/10 text-secondary mb-4 transition-transform animate-float">
@@ -59,20 +61,21 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Features Section */}
-      <section className="py-20 md:py-28 bg-muted/50 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-background to-transparent h-20 top-0 left-0 right-0"></div>
+      {/* Features Section - Also improve this background */}
+      <section className="py-20 md:py-28 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background -z-10"></div>
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top,rgba(14,165,233,0.15),transparent_70%)] -z-10"></div>
         <div className="container px-4 md:px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
             <p className="text-muted-foreground md:text-lg max-w-[700px] mx-auto">
-              SyncIn makes professional networking intuitive and efficient
+              Berugn makes professional networking intuitive and efficient
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 - Updated with secondary color */}
-            <div className="flex flex-col items-center text-center rounded-2xl bg-card text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
+            {/* Feature 1 */}
+            <div className="flex flex-col items-center text-center rounded-2xl bg-card/80 backdrop-blur-sm text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
               <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
                 <Briefcase className="h-8 w-8 text-secondary" />
               </div>
@@ -97,7 +100,7 @@ const Index = () => {
             </div>
             
             {/* Feature 2 */}
-            <div className="flex flex-col items-center text-center rounded-2xl bg-card text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
+            <div className="flex flex-col items-center text-center rounded-2xl bg-card/80 backdrop-blur-sm text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
               <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
                 <Users className="h-8 w-8 text-secondary" />
               </div>
@@ -122,7 +125,7 @@ const Index = () => {
             </div>
             
             {/* Feature 3 */}
-            <div className="flex flex-col items-center text-center rounded-2xl bg-card text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
+            <div className="flex flex-col items-center text-center rounded-2xl bg-card/80 backdrop-blur-sm text-card-foreground p-8 premium-card transform transition-all duration-500 hover:-translate-y-2">
               <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center mb-6 transition-all duration-300 hover:scale-110">
                 <Zap className="h-8 w-8 text-secondary" />
               </div>
@@ -149,9 +152,10 @@ const Index = () => {
         </div>
       </section>
       
-      {/* CTA Section */}
+      {/* CTA Section - Improve this background too */}
       <section className="py-20 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 -z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 via-background to-primary/5 -z-10"></div>
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.2),transparent_50%)] -z-10"></div>
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center max-w-[800px] mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
