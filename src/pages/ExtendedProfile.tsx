@@ -19,7 +19,8 @@ import {
   Plus, 
   Edit, 
   Trash2,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -348,7 +349,9 @@ const ExtendedProfile = () => {
           .from('work_experience')
           .insert({
             ...data,
-            user_id: currentUser.id
+            user_id: currentUser.id,
+            company: data.company,
+            position: data.position
           })
           .select()
           .single();
@@ -401,7 +404,9 @@ const ExtendedProfile = () => {
           .from('education')
           .insert({
             ...data,
-            user_id: currentUser.id
+            user_id: currentUser.id,
+            institution: data.institution,
+            degree: data.degree
           })
           .select()
           .single();
@@ -454,7 +459,8 @@ const ExtendedProfile = () => {
           .from('projects')
           .insert({
             ...data,
-            user_id: currentUser.id
+            user_id: currentUser.id,
+            title: data.title
           })
           .select()
           .single();
@@ -507,7 +513,9 @@ const ExtendedProfile = () => {
           .from('certificates')
           .insert({
             ...data,
-            user_id: currentUser.id
+            user_id: currentUser.id,
+            name: data.name,
+            issuing_organization: data.issuing_organization
           })
           .select()
           .single();
@@ -536,8 +544,21 @@ const ExtendedProfile = () => {
   // Handle item deletion
   const handleDelete = async (type: string, id: string) => {
     try {
+      // Fix the type parameter to be one of the valid table names
+      const tableMap: Record<string, string> = {
+        'work_experience': 'work_experience',
+        'education': 'education',
+        'projects': 'projects',
+        'certificates': 'certificates'
+      };
+      
+      const tableName = tableMap[type];
+      if (!tableName) {
+        throw new Error(`Invalid table type: ${type}`);
+      }
+      
       const { error } = await supabase
-        .from(type)
+        .from(tableName)
         .delete()
         .eq('id', id);
         

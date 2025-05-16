@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -211,9 +210,9 @@ const Browse = () => {
             Find and connect with professionals in your field
           </p>
           
-          {/* Edit profile link */}
+          {/* Edit profile link - update to point to /profile instead of /extended-profile */}
           <Button variant="outline" size="sm" className="mt-2" asChild>
-            <Link to="/extended-profile">
+            <Link to="/profile">
               <User className="w-4 h-4 mr-2" />
               Complete Your Profile
             </Link>

@@ -26,12 +26,19 @@ const NotFound = () => {
           <p className="text-muted-foreground mb-6">
             Sorry, the page you are looking for doesn't exist or has been moved.
           </p>
-          <Link to="/">
-            <Button className="gap-2">
-              <Home size={16} />
-              Return to Home
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/">
+              <Button className="gap-2">
+                <Home size={16} />
+                Return to Home
+              </Button>
+            </Link>
+            <Link to="/profile">
+              <Button variant="outline" className="gap-2">
+                View Your Profile
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
