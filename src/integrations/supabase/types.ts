@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      certificates: {
+        Row: {
+          created_at: string
+          credential_id: string | null
+          credential_url: string | null
+          expiration_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_id?: string | null
+          credential_url?: string | null
+          expiration_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string | null
+          credential_url?: string | null
+          expiration_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           connected_user_id: string
@@ -29,6 +65,42 @@ export type Database = {
           created_at?: string
           id?: string
           status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      education: {
+        Row: {
+          created_at: string
+          degree: string
+          description: string | null
+          end_date: string | null
+          field_of_study: string | null
+          id: string
+          institution: string
+          start_date: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          degree: string
+          description?: string | null
+          end_date?: string | null
+          field_of_study?: string | null
+          id?: string
+          institution: string
+          start_date?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          degree?: string
+          description?: string | null
+          end_date?: string | null
+          field_of_study?: string | null
+          id?: string
+          institution?: string
+          start_date?: string | null
           user_id?: string
         }
         Relationships: []
@@ -101,6 +173,84 @@ export type Database = {
           name?: string
           profile_image?: string | null
           skills?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          current: boolean | null
+          description: string | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          start_date: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current?: boolean | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          start_date?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current?: boolean | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          start_date?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      work_experience: {
+        Row: {
+          company: string
+          created_at: string
+          current: boolean | null
+          description: string | null
+          end_date: string | null
+          id: string
+          location: string | null
+          position: string
+          start_date: string | null
+          user_id: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          current?: boolean | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          position: string
+          start_date?: string | null
+          user_id: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          current?: boolean | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          position?: string
+          start_date?: string | null
           user_id?: string
         }
         Relationships: []
