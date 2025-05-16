@@ -1,21 +1,20 @@
-
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useProfile } from '@/context/ProfileContext';
-import { Navigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { format } from 'date-fns';
+import Header from '@/components/Header';
 import { 
-  Briefcase, 
+  CalendarIcon, 
+  BadgeCheck, 
+  Building, 
   GraduationCap, 
-  FileCode, 
   Award, 
+  Briefcase, 
   Calendar, 
-  MapPin, 
+  ListFilter, 
   Plus, 
   Edit, 
   Trash2,
@@ -26,326 +25,406 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogHeader,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/components/ui/form';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Define form schemas
+// Define the types for our data
+type WorkExperience = {
+  id: string;
+  company: string;
+  position: string;
+  start_date: string | null;
+  end_date: string | null;
+  current: boolean;
+  location: string | null;
+  description: string | null;
+};
+
+type Education = {
+  id: string;
+  institution: string;
+  degree: string;
+  field_of_study: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  description: string | null;
+};
+
+type Project = {
+  id: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  image_url: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  current: boolean;
+};
+
+type Certificate = {
+  id: string;
+  name: string;
+  issuing_organization: string;
+  issue_date: string | null;
+  expiration_date: string | null;
+  credential_id: string | null;
+  credential_url: string | null;
+};
+
+type ProfileData = {
+  name: string;
+  job_title: string | null;
+  company: string | null;
+  bio: string | null;
+  linkedin_url: string | null;
+  profile_image: string | null;
+  experience: string | null;
+  industry: string | null;
+  skills: string[];
+};
+
+// Define the database table names as a type
+type TableName = 'work_experience' | 'education' | 'projects' | 'certificates';
+
+// Form schemas
 const workExperienceSchema = z.object({
   company: z.string().min(1, "Company is required"),
   position: z.string().min(1, "Position is required"),
   location: z.string().optional(),
-  start_date: z.string().optional(),
-  end_date: z.string().optional(),
+  start_date: z.date().optional(),
+  end_date: z.date().optional(),
   current: z.boolean().default(false),
-  description: z.string().optional()
+  description: z.string().optional(),
 });
 
 const educationSchema = z.object({
   institution: z.string().min(1, "Institution is required"),
   degree: z.string().min(1, "Degree is required"),
   field_of_study: z.string().optional(),
-  start_date: z.string().optional(),
-  end_date: z.string().optional(),
-  description: z.string().optional()
+  start_date: z.date().optional(),
+  end_date: z.date().optional(),
+  description: z.string().optional(),
 });
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  start_date: z.string().optional(),
-  end_date: z.string().optional(),
-  current: z.boolean().default(false),
   url: z.string().optional(),
-  image_url: z.string().optional()
+  image_url: z.string().optional(),
+  start_date: z.date().optional(),
+  end_date: z.date().optional(),
+  current: z.boolean().default(false),
 });
 
 const certificateSchema = z.object({
   name: z.string().min(1, "Certificate name is required"),
   issuing_organization: z.string().min(1, "Issuing organization is required"),
-  issue_date: z.string().optional(),
-  expiration_date: z.string().optional(),
+  issue_date: z.date().optional(),
+  expiration_date: z.date().optional(),
   credential_id: z.string().optional(),
-  credential_url: z.string().optional()
+  credential_url: z.string().optional(),
 });
-
-type WorkExperienceFormValues = z.infer<typeof workExperienceSchema>;
-type EducationFormValues = z.infer<typeof educationSchema>;
-type ProjectFormValues = z.infer<typeof projectSchema>;
-type CertificateFormValues = z.infer<typeof certificateSchema>;
-
-interface WorkExperience {
-  id: string;
-  company: string;
-  position: string;
-  location?: string;
-  start_date?: string;
-  end_date?: string;
-  current?: boolean;
-  description?: string;
-}
-
-interface Education {
-  id: string;
-  institution: string;
-  degree: string;
-  field_of_study?: string;
-  start_date?: string;
-  end_date?: string;
-  description?: string;
-}
-
-interface Project {
-  id: string;
-  title: string;
-  description?: string;
-  start_date?: string;
-  end_date?: string;
-  current?: boolean;
-  url?: string;
-  image_url?: string;
-}
-
-interface Certificate {
-  id: string;
-  name: string;
-  issuing_organization: string;
-  issue_date?: string;
-  expiration_date?: string;
-  credential_id?: string;
-  credential_url?: string;
-}
-
-// Format date for display
-const formatDate = (dateString?: string) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short' }).format(date);
-};
 
 const ExtendedProfile = () => {
   const { currentUser } = useAuth();
-  const { userProfile } = useProfile();
   const { toast } = useToast();
   
-  const [workExperiences, setWorkExperiences] = useState<WorkExperience[]>([]);
-  const [educations, setEducations] = useState<Education[]>([]);
+  // State for profile data and other sections
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   
-  const [loading, setLoading] = useState(true);
-  const [activeDialog, setActiveDialog] = useState<string | null>(null);
-  const [itemToEdit, setItemToEdit] = useState<any>(null);
+  // Dialog open states
+  const [dialogOpen, setDialogOpen] = useState<{
+    type: string;
+    action: string;
+    data?: any;
+  } | null>(null);
   
-  // Initialize forms
-  const workForm = useForm<WorkExperienceFormValues>({
+  // Loading states
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  
+  // Fetch all profile data when component mounts
+  useEffect(() => {
+    if (currentUser) {
+      fetchAllProfileData();
+    }
+  }, [currentUser]);
+  
+  // Simulated progressive loading for better UX
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setInterval(() => {
+        setLoadingProgress(prev => {
+          const newProgress = prev + 20;
+          if (newProgress >= 100) {
+            clearInterval(timer);
+            return 100;
+          }
+          return newProgress;
+        });
+      }, 500);
+      
+      return () => clearInterval(timer);
+    }
+  }, [isLoading]);
+  
+  // Fetch all profile sections
+  const fetchAllProfileData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch profile info
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .single();
+      
+      setProfileData(profileData as ProfileData);
+      
+      // Fetch work experience
+      const { data: workData } = await supabase
+        .from('work_experience')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('start_date', { ascending: false });
+      
+      setWorkExperience(workData as WorkExperience[]);
+      
+      // Fetch education
+      const { data: eduData } = await supabase
+        .from('education')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('start_date', { ascending: false });
+      
+      setEducation(eduData as Education[]);
+      
+      // Fetch projects
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('start_date', { ascending: false });
+      
+      setProjects(projectData as Project[]);
+      
+      // Fetch certificates
+      const { data: certData } = await supabase
+        .from('certificates')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('issue_date', { ascending: false });
+      
+      setCertificates(certData as Certificate[]);
+      
+      console.log('All profile data loaded successfully');
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load profile data. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Create work experience form
+  const workExperienceForm = useForm<z.infer<typeof workExperienceSchema>>({
     resolver: zodResolver(workExperienceSchema),
     defaultValues: {
       company: '',
       position: '',
       location: '',
-      start_date: '',
-      end_date: '',
       current: false,
-      description: ''
-    }
+      description: '',
+    },
   });
   
-  const educationForm = useForm<EducationFormValues>({
+  // Create education form
+  const educationForm = useForm<z.infer<typeof educationSchema>>({
     resolver: zodResolver(educationSchema),
     defaultValues: {
       institution: '',
       degree: '',
       field_of_study: '',
-      start_date: '',
-      end_date: '',
-      description: ''
-    }
+      description: '',
+    },
   });
   
-  const projectForm = useForm<ProjectFormValues>({
+  // Create project form
+  const projectForm = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: '',
       description: '',
-      start_date: '',
-      end_date: '',
-      current: false,
       url: '',
-      image_url: ''
-    }
+      image_url: '',
+      current: false,
+    },
   });
   
-  const certificateForm = useForm<CertificateFormValues>({
+  // Create certificate form
+  const certificateForm = useForm<z.infer<typeof certificateSchema>>({
     resolver: zodResolver(certificateSchema),
     defaultValues: {
       name: '',
       issuing_organization: '',
-      issue_date: '',
-      expiration_date: '',
       credential_id: '',
-      credential_url: ''
-    }
+      credential_url: '',
+    },
   });
   
-  // Reset form when dialog changes
-  useEffect(() => {
-    if (!activeDialog) return;
+  // Open dialog to add new item or edit existing
+  const openDialog = (type: string, action: string, data?: any) => {
+    setDialogOpen({ type, action, data });
     
-    workForm.reset();
+    // Reset forms
+    switch (type) {
+      case 'work_experience':
+        workExperienceForm.reset(
+          action === 'edit' ? {
+            company: data.company,
+            position: data.position,
+            location: data.location || '',
+            description: data.description || '',
+            current: data.current || false,
+            ...(data.start_date && { start_date: new Date(data.start_date) }),
+            ...(data.end_date && { end_date: new Date(data.end_date) }),
+          } : {
+            company: '',
+            position: '',
+            location: '',
+            description: '',
+            current: false,
+          }
+        );
+        break;
+        
+      case 'education':
+        educationForm.reset(
+          action === 'edit' ? {
+            institution: data.institution,
+            degree: data.degree,
+            field_of_study: data.field_of_study || '',
+            description: data.description || '',
+            ...(data.start_date && { start_date: new Date(data.start_date) }),
+            ...(data.end_date && { end_date: new Date(data.end_date) }),
+          } : {
+            institution: '',
+            degree: '',
+            field_of_study: '',
+            description: '',
+          }
+        );
+        break;
+        
+      case 'project':
+        projectForm.reset(
+          action === 'edit' ? {
+            title: data.title,
+            description: data.description || '',
+            url: data.url || '',
+            image_url: data.image_url || '',
+            current: data.current || false,
+            ...(data.start_date && { start_date: new Date(data.start_date) }),
+            ...(data.end_date && { end_date: new Date(data.end_date) }),
+          } : {
+            title: '',
+            description: '',
+            url: '',
+            image_url: '',
+            current: false,
+          }
+        );
+        break;
+        
+      case 'certificate':
+        certificateForm.reset(
+          action === 'edit' ? {
+            name: data.name,
+            issuing_organization: data.issuing_organization,
+            credential_id: data.credential_id || '',
+            credential_url: data.credential_url || '',
+            ...(data.issue_date && { issue_date: new Date(data.issue_date) }),
+            ...(data.expiration_date && { expiration_date: new Date(data.expiration_date) }),
+          } : {
+            name: '',
+            issuing_organization: '',
+            credential_id: '',
+            credential_url: '',
+          }
+        );
+        break;
+    }
+  };
+  
+  // Close dialog
+  const closeDialog = () => {
+    setDialogOpen(null);
+    workExperienceForm.reset();
     educationForm.reset();
     projectForm.reset();
     certificateForm.reset();
-    
-    if (itemToEdit) {
-      if (activeDialog === 'work') {
-        workForm.reset({
-          company: itemToEdit.company || '',
-          position: itemToEdit.position || '',
-          location: itemToEdit.location || '',
-          start_date: itemToEdit.start_date || '',
-          end_date: itemToEdit.end_date || '',
-          current: itemToEdit.current || false,
-          description: itemToEdit.description || ''
-        });
-      } else if (activeDialog === 'education') {
-        educationForm.reset({
-          institution: itemToEdit.institution || '',
-          degree: itemToEdit.degree || '',
-          field_of_study: itemToEdit.field_of_study || '',
-          start_date: itemToEdit.start_date || '',
-          end_date: itemToEdit.end_date || '',
-          description: itemToEdit.description || ''
-        });
-      } else if (activeDialog === 'project') {
-        projectForm.reset({
-          title: itemToEdit.title || '',
-          description: itemToEdit.description || '',
-          start_date: itemToEdit.start_date || '',
-          end_date: itemToEdit.end_date || '',
-          current: itemToEdit.current || false,
-          url: itemToEdit.url || '',
-          image_url: itemToEdit.image_url || ''
-        });
-      } else if (activeDialog === 'certificate') {
-        certificateForm.reset({
-          name: itemToEdit.name || '',
-          issuing_organization: itemToEdit.issuing_organization || '',
-          issue_date: itemToEdit.issue_date || '',
-          expiration_date: itemToEdit.expiration_date || '',
-          credential_id: itemToEdit.credential_id || '',
-          credential_url: itemToEdit.credential_url || ''
-        });
-      }
-    }
-  }, [activeDialog, itemToEdit]);
+  };
   
-  // Load user's profile data
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!currentUser?.id) return;
-      
-      setLoading(true);
-      try {
-        // Fetch work experience
-        const { data: workData, error: workError } = await supabase
-          .from('work_experience')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('current', { ascending: false })
-          .order('end_date', { ascending: false });
-        
-        if (workError) throw workError;
-        setWorkExperiences(workData || []);
-        
-        // Fetch education
-        const { data: eduData, error: eduError } = await supabase
-          .from('education')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('end_date', { ascending: false });
-        
-        if (eduError) throw eduError;
-        setEducations(eduData || []);
-        
-        // Fetch projects
-        const { data: projData, error: projError } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('current', { ascending: false })
-          .order('end_date', { ascending: false });
-        
-        if (projError) throw projError;
-        setProjects(projData || []);
-        
-        // Fetch certificates
-        const { data: certData, error: certError } = await supabase
-          .from('certificates')
-          .select('*')
-          .eq('user_id', currentUser.id);
-        
-        if (certError) throw certError;
-        setCertificates(certData || []);
-        
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load profile data. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchProfileData();
-  }, [currentUser]);
-  
-  // Handle form submissions
-  const handleWorkSubmit = async (data: WorkExperienceFormValues) => {
-    if (!currentUser) return;
+  // Handle form submission for work experience
+  const handleWorkExperienceSubmit = async (data: z.infer<typeof workExperienceSchema>) => {
+    setIsSaving(true);
     
     try {
-      if (itemToEdit) {
-        // Update existing work experience
-        const { error } = await supabase
-          .from('work_experience')
-          .update(data)
-          .eq('id', itemToEdit.id);
-          
-        if (error) throw error;
-        
-        setWorkExperiences(prev => 
-          prev.map(item => item.id === itemToEdit.id ? { ...item, ...data } : item)
-        );
-        
-        toast({
-          title: 'Success',
-          description: 'Work experience updated successfully',
-        });
-      } else {
-        // Add new work experience
-        const { data: newData, error } = await supabase
+      const formattedData = {
+        ...data,
+        start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
+        end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
+      };
+      
+      if (dialogOpen?.action === 'add') {
+        const { data: newWork, error } = await supabase
           .from('work_experience')
           .insert({
             ...data,
@@ -358,15 +437,33 @@ const ExtendedProfile = () => {
           
         if (error) throw error;
         
-        setWorkExperiences(prev => [...prev, newData]);
+        setWorkExperience(prev => [newWork as WorkExperience, ...prev]);
         
         toast({
-          title: 'Success',
-          description: 'Work experience added successfully',
+          title: 'Work experience added',
+          description: 'Your work experience has been added successfully.',
+        });
+      } else if (dialogOpen?.action === 'edit' && dialogOpen.data) {
+        const { data: updatedWork, error } = await supabase
+          .from('work_experience')
+          .update(formattedData)
+          .eq('id', dialogOpen.data.id)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        setWorkExperience(prev => 
+          prev.map(item => item.id === dialogOpen.data.id ? (updatedWork as WorkExperience) : item)
+        );
+        
+        toast({
+          title: 'Work experience updated',
+          description: 'Your work experience has been updated successfully.',
         });
       }
       
-      setActiveDialog(null);
+      closeDialog();
     } catch (error) {
       console.error('Error saving work experience:', error);
       toast({
@@ -374,33 +471,24 @@ const ExtendedProfile = () => {
         description: 'Failed to save work experience. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
   
-  const handleEducationSubmit = async (data: EducationFormValues) => {
-    if (!currentUser) return;
+  // Handle form submission for education
+  const handleEducationSubmit = async (data: z.infer<typeof educationSchema>) => {
+    setIsSaving(true);
     
     try {
-      if (itemToEdit) {
-        // Update existing education
-        const { error } = await supabase
-          .from('education')
-          .update(data)
-          .eq('id', itemToEdit.id);
-          
-        if (error) throw error;
-        
-        setEducations(prev => 
-          prev.map(item => item.id === itemToEdit.id ? { ...item, ...data } : item)
-        );
-        
-        toast({
-          title: 'Success',
-          description: 'Education updated successfully',
-        });
-      } else {
-        // Add new education
-        const { data: newData, error } = await supabase
+      const formattedData = {
+        ...data,
+        start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
+        end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
+      };
+      
+      if (dialogOpen?.action === 'add') {
+        const { data: newEdu, error } = await supabase
           .from('education')
           .insert({
             ...data,
@@ -413,15 +501,33 @@ const ExtendedProfile = () => {
           
         if (error) throw error;
         
-        setEducations(prev => [...prev, newData]);
+        setEducation(prev => [newEdu as Education, ...prev]);
         
         toast({
-          title: 'Success',
-          description: 'Education added successfully',
+          title: 'Education added',
+          description: 'Your education has been added successfully.',
+        });
+      } else if (dialogOpen?.action === 'edit' && dialogOpen.data) {
+        const { data: updatedEdu, error } = await supabase
+          .from('education')
+          .update(formattedData)
+          .eq('id', dialogOpen.data.id)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        setEducation(prev => 
+          prev.map(item => item.id === dialogOpen.data.id ? (updatedEdu as Education) : item)
+        );
+        
+        toast({
+          title: 'Education updated',
+          description: 'Your education has been updated successfully.',
         });
       }
       
-      setActiveDialog(null);
+      closeDialog();
     } catch (error) {
       console.error('Error saving education:', error);
       toast({
@@ -429,33 +535,24 @@ const ExtendedProfile = () => {
         description: 'Failed to save education. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
   
-  const handleProjectSubmit = async (data: ProjectFormValues) => {
-    if (!currentUser) return;
+  // Handle form submission for project
+  const handleProjectSubmit = async (data: z.infer<typeof projectSchema>) => {
+    setIsSaving(true);
     
     try {
-      if (itemToEdit) {
-        // Update existing project
-        const { error } = await supabase
-          .from('projects')
-          .update(data)
-          .eq('id', itemToEdit.id);
-          
-        if (error) throw error;
-        
-        setProjects(prev => 
-          prev.map(item => item.id === itemToEdit.id ? { ...item, ...data } : item)
-        );
-        
-        toast({
-          title: 'Success',
-          description: 'Project updated successfully',
-        });
-      } else {
-        // Add new project
-        const { data: newData, error } = await supabase
+      const formattedData = {
+        ...data,
+        start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
+        end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
+      };
+      
+      if (dialogOpen?.action === 'add') {
+        const { data: newProject, error } = await supabase
           .from('projects')
           .insert({
             ...data,
@@ -467,15 +564,33 @@ const ExtendedProfile = () => {
           
         if (error) throw error;
         
-        setProjects(prev => [...prev, newData]);
+        setProjects(prev => [newProject as Project, ...prev]);
         
         toast({
-          title: 'Success',
-          description: 'Project added successfully',
+          title: 'Project added',
+          description: 'Your project has been added successfully.',
+        });
+      } else if (dialogOpen?.action === 'edit' && dialogOpen.data) {
+        const { data: updatedProject, error } = await supabase
+          .from('projects')
+          .update(formattedData)
+          .eq('id', dialogOpen.data.id)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        setProjects(prev => 
+          prev.map(item => item.id === dialogOpen.data.id ? (updatedProject as Project) : item)
+        );
+        
+        toast({
+          title: 'Project updated',
+          description: 'Your project has been updated successfully.',
         });
       }
       
-      setActiveDialog(null);
+      closeDialog();
     } catch (error) {
       console.error('Error saving project:', error);
       toast({
@@ -483,33 +598,24 @@ const ExtendedProfile = () => {
         description: 'Failed to save project. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
   
-  const handleCertificateSubmit = async (data: CertificateFormValues) => {
-    if (!currentUser) return;
+  // Handle form submission for certificate
+  const handleCertificateSubmit = async (data: z.infer<typeof certificateSchema>) => {
+    setIsSaving(true);
     
     try {
-      if (itemToEdit) {
-        // Update existing certificate
-        const { error } = await supabase
-          .from('certificates')
-          .update(data)
-          .eq('id', itemToEdit.id);
-          
-        if (error) throw error;
-        
-        setCertificates(prev => 
-          prev.map(item => item.id === itemToEdit.id ? { ...item, ...data } : item)
-        );
-        
-        toast({
-          title: 'Success',
-          description: 'Certificate updated successfully',
-        });
-      } else {
-        // Add new certificate
-        const { data: newData, error } = await supabase
+      const formattedData = {
+        ...data,
+        issue_date: data.issue_date ? format(data.issue_date, 'yyyy-MM-dd') : null,
+        expiration_date: data.expiration_date ? format(data.expiration_date, 'yyyy-MM-dd') : null,
+      };
+      
+      if (dialogOpen?.action === 'add') {
+        const { data: newCert, error } = await supabase
           .from('certificates')
           .insert({
             ...data,
@@ -522,15 +628,33 @@ const ExtendedProfile = () => {
           
         if (error) throw error;
         
-        setCertificates(prev => [...prev, newData]);
+        setCertificates(prev => [newCert as Certificate, ...prev]);
         
         toast({
-          title: 'Success',
-          description: 'Certificate added successfully',
+          title: 'Certificate added',
+          description: 'Your certificate has been added successfully.',
+        });
+      } else if (dialogOpen?.action === 'edit' && dialogOpen.data) {
+        const { data: updatedCert, error } = await supabase
+          .from('certificates')
+          .update(formattedData)
+          .eq('id', dialogOpen.data.id)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        setCertificates(prev => 
+          prev.map(item => item.id === dialogOpen.data.id ? (updatedCert as Certificate) : item)
+        );
+        
+        toast({
+          title: 'Certificate updated',
+          description: 'Your certificate has been updated successfully.',
         });
       }
       
-      setActiveDialog(null);
+      closeDialog();
     } catch (error) {
       console.error('Error saving certificate:', error);
       toast({
@@ -538,51 +662,56 @@ const ExtendedProfile = () => {
         description: 'Failed to save certificate. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
   
   // Handle item deletion
-  const handleDelete = async (type: string, id: string) => {
+  const handleDelete = async (type: TableName, id: string) => {
     try {
-      // Fix the type parameter to be one of the valid table names
-      const tableMap: Record<string, string> = {
-        'work_experience': 'work_experience',
-        'education': 'education',
-        'projects': 'projects',
-        'certificates': 'certificates'
-      };
-      
-      const tableName = tableMap[type];
-      if (!tableName) {
-        throw new Error(`Invalid table type: ${type}`);
-      }
-      
       const { error } = await supabase
-        .from(tableName)
+        .from(type)
         .delete()
         .eq('id', id);
         
       if (error) throw error;
       
+      // Update state based on deleted item type
       switch (type) {
         case 'work_experience':
-          setWorkExperiences(prev => prev.filter(item => item.id !== id));
+          setWorkExperience(prev => prev.filter(item => item.id !== id));
+          toast({
+            title: 'Work experience deleted',
+            description: 'Work experience has been deleted successfully.',
+          });
           break;
+          
         case 'education':
-          setEducations(prev => prev.filter(item => item.id !== id));
+          setEducation(prev => prev.filter(item => item.id !== id));
+          toast({
+            title: 'Education deleted',
+            description: 'Education has been deleted successfully.',
+          });
           break;
+          
         case 'projects':
           setProjects(prev => prev.filter(item => item.id !== id));
+          toast({
+            title: 'Project deleted',
+            description: 'Project has been deleted successfully.',
+          });
           break;
+          
         case 'certificates':
           setCertificates(prev => prev.filter(item => item.id !== id));
+          toast({
+            title: 'Certificate deleted',
+            description: 'Certificate has been deleted successfully.',
+          });
           break;
       }
       
-      toast({
-        title: 'Success',
-        description: 'Item deleted successfully',
-      });
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({
@@ -592,890 +721,1114 @@ const ExtendedProfile = () => {
       });
     }
   };
-  
-  // Reset when dialog closes
-  const handleDialogChange = (open: boolean) => {
-    if (!open) {
-      setActiveDialog(null);
-      setItemToEdit(null);
-    }
+
+  // Format date for display
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Present';
+    return format(new Date(dateString), 'MMM yyyy');
   };
-  
-  // If user is not logged in, redirect to login page
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
+
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    let score = 0;
+    let total = 5; // Base sections to complete
+    
+    // Check profile data
+    if (profileData) {
+      if (profileData.name) score++;
+      if (profileData.job_title) score++;
+      if (profileData.bio) score++;
+      if (profileData.skills && profileData.skills.length > 0) score++;
+      if (profileData.industry) score++;
+    }
+    
+    // Check other sections
+    if (workExperience.length > 0) score++;
+    if (education.length > 0) score++;
+    if (projects.length > 0) score++;
+    if (certificates.length > 0) score++;
+    
+    total += 4; // Add the other sections
+    
+    return Math.round((score / total) * 100);
+  };
+
+  // Render work experience item
+  const renderWorkExperienceItem = (item: WorkExperience) => (
+    <Card key={item.id} className="mb-4">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg">{item.position}</CardTitle>
+            <CardDescription className="flex items-center mt-1">
+              <Building className="h-4 w-4 mr-1" />
+              {item.company}
+              {item.location && ` • ${item.location}`}
+            </CardDescription>
+          </div>
+          <div className="flex space-x-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => openDialog('work_experience', 'edit', item)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => handleDelete('work_experience', item.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground mb-2 flex items-center">
+          <Calendar className="h-4 w-4 mr-1" />
+          {formatDate(item.start_date)} - {item.current ? 'Present' : formatDate(item.end_date)}
+        </div>
+        {item.description && <p className="text-sm mt-2">{item.description}</p>}
+      </CardContent>
+    </Card>
+  );
+
+  // Render education item
+  const renderEducationItem = (item: Education) => (
+    <Card key={item.id} className="mb-4">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg">{item.degree}</CardTitle>
+            <CardDescription className="flex items-center mt-1">
+              <GraduationCap className="h-4 w-4 mr-1" />
+              {item.institution}
+              {item.field_of_study && ` • ${item.field_of_study}`}
+            </CardDescription>
+          </div>
+          <div className="flex space-x-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => openDialog('education', 'edit', item)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => handleDelete('education', item.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground mb-2 flex items-center">
+          <Calendar className="h-4 w-4 mr-1" />
+          {formatDate(item.start_date)} - {formatDate(item.end_date)}
+        </div>
+        {item.description && <p className="text-sm mt-2">{item.description}</p>}
+      </CardContent>
+    </Card>
+  );
+
+  // Render project item
+  const renderProjectItem = (item: Project) => (
+    <Card key={item.id} className="mb-4">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg">{item.title}</CardTitle>
+            {item.url && (
+              <CardDescription className="flex items-center mt-1">
+                <ExternalLink className="h-4 w-4 mr-1" />
+                <a 
+                  href={item.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Project Link
+                </a>
+              </CardDescription>
+            )}
+          </div>
+          <div className="flex space-x-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => openDialog('project', 'edit', item)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => handleDelete('projects', item.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground mb-2 flex items-center">
+          <Calendar className="h-4 w-4 mr-1" />
+          {formatDate(item.start_date)} - {item.current ? 'Present' : formatDate(item.end_date)}
+        </div>
+        {item.description && <p className="text-sm mt-2">{item.description}</p>}
+      </CardContent>
+    </Card>
+  );
+
+  // Render certificate item
+  const renderCertificateItem = (item: Certificate) => (
+    <Card key={item.id} className="mb-4">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg">{item.name}</CardTitle>
+            <CardDescription className="flex items-center mt-1">
+              <BadgeCheck className="h-4 w-4 mr-1" />
+              {item.issuing_organization}
+            </CardDescription>
+          </div>
+          <div className="flex space-x-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => openDialog('certificate', 'edit', item)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => handleDelete('certificates', item.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground mb-2 flex items-center">
+          <Calendar className="h-4 w-4 mr-1" />
+          {item.issue_date ? `Issued: ${formatDate(item.issue_date)}` : 'No issue date'}
+          {item.expiration_date && ` • Expires: ${formatDate(item.expiration_date)}`}
+        </div>
+        {item.credential_id && (
+          <div className="text-sm mt-2">
+            <span className="font-medium">Credential ID:</span> {item.credential_id}
+          </div>
+        )}
+        {item.credential_url && (
+          <div className="text-sm mt-1">
+            <a 
+              href={item.credential_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline flex items-center"
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              View Credential
+            </a>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // Render work experience form
+  const renderWorkExperienceForm = () => (
+    <Form {...workExperienceForm}>
+      <form onSubmit={workExperienceForm.handleSubmit(handleWorkExperienceSubmit)} className="space-y-4">
+        <FormField
+          control={workExperienceForm.control}
+          name="company"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Company</FormLabel>
+              <FormControl>
+                <Input placeholder="Company name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={workExperienceForm.control}
+          name="position"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Position</FormLabel>
+              <FormControl>
+                <Input placeholder="Job title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={workExperienceForm.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Input placeholder="City, Country" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={workExperienceForm.control}
+            name="start_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Start Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={workExperienceForm.control}
+            name="end_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>End Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${
+                          !field.value && "text-muted-foreground"
+                        }`}
+                        disabled={workExperienceForm.watch("current")}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={workExperienceForm.control}
+          name="current"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      workExperienceForm.setValue("end_date", undefined);
+                    }
+                  }}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Current Position</FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={workExperienceForm.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Describe your responsibilities and achievements" 
+                  className="min-h-[100px]" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={closeDialog}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+
+  // Render education form
+  const renderEducationForm = () => (
+    <Form {...educationForm}>
+      <form onSubmit={educationForm.handleSubmit(handleEducationSubmit)} className="space-y-4">
+        <FormField
+          control={educationForm.control}
+          name="institution"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Institution</FormLabel>
+              <FormControl>
+                <Input placeholder="University or school name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={educationForm.control}
+          name="degree"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Degree</FormLabel>
+              <FormControl>
+                <Input placeholder="Bachelor's, Master's, etc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={educationForm.control}
+          name="field_of_study"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Field of Study</FormLabel>
+              <FormControl>
+                <Input placeholder="Computer Science, Business, etc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={educationForm.control}
+            name="start_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Start Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={educationForm.control}
+            name="end_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>End Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={educationForm.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Activities, achievements, etc." 
+                  className="min-h-[100px]" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={closeDialog}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+
+  // Render project form
+  const renderProjectForm = () => (
+    <Form {...projectForm}>
+      <form onSubmit={projectForm.handleSubmit(handleProjectSubmit)} className="space-y-4">
+        <FormField
+          control={projectForm.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Project name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={projectForm.control}
+          name="url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project URL</FormLabel>
+              <FormControl>
+                <Input placeholder="https://..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={projectForm.control}
+          name="image_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image URL</FormLabel>
+              <FormControl>
+                <Input placeholder="https://..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={projectForm.control}
+            name="start_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Start Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={projectForm.control}
+            name="end_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>End Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${
+                          !field.value && "text-muted-foreground"
+                        }`}
+                        disabled={projectForm.watch("current")}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={projectForm.control}
+          name="current"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      projectForm.setValue("end_date", undefined);
+                    }
+                  }}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Current Project</FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={projectForm.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Describe your project" 
+                  className="min-h-[100px]" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={closeDialog}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+
+  // Render certificate form
+  const renderCertificateForm = () => (
+    <Form {...certificateForm}>
+      <form onSubmit={certificateForm.handleSubmit(handleCertificateSubmit)} className="space-y-4">
+        <FormField
+          control={certificateForm.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Certificate Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Certificate title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={certificateForm.control}
+          name="issuing_organization"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Issuing Organization</FormLabel>
+              <FormControl>
+                <Input placeholder="Organization name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={certificateForm.control}
+            name="issue_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Issue Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={certificateForm.control}
+            name="expiration_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Expiration Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? (
+                          format(field.value, "MMM yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={certificateForm.control}
+          name="credential_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Credential ID</FormLabel>
+              <FormControl>
+                <Input placeholder="Certificate ID" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={certificateForm.control}
+          name="credential_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Credential URL</FormLabel>
+              <FormControl>
+                <Input placeholder="https://..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={closeDialog}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+
+  // Render profile header
+  const renderProfileHeader = () => (
+    <div className="flex flex-col md:flex-row gap-6 items-center md:items-start mb-8">
+      <Avatar className="h-24 w-24">
+        {profileData?.profile_image ? (
+          <AvatarImage src={profileData.profile_image} alt={profileData.name} />
+        ) : (
+          <AvatarFallback>
+            <User className="h-12 w-12" />
+          </AvatarFallback>
+        )}
+      </Avatar>
+      
+      <div className="flex-1 text-center md:text-left">
+        <h1 className="text-3xl font-bold">{profileData?.name || 'Your Name'}</h1>
+        <p className="text-xl text-muted-foreground mt-1">
+          {profileData?.job_title || 'Job Title'} 
+          {profileData?.company && ` at ${profileData.company}`}
+        </p>
+        
+        {profileData?.industry && (
+          <Badge variant="outline" className="mt-2">
+            {profileData.industry}
+          </Badge>
+        )}
+        
+        {profileData?.linkedin_url && (
+          <div className="mt-3">
+            <a 
+              href={profileData.linkedin_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline flex items-center justify-center md:justify-start"
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              LinkedIn Profile
+            </a>
+          </div>
+        )}
+      </div>
+      
+      <div className="w-full md:w-auto">
+        <div className="bg-muted p-4 rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium">Profile Completion</span>
+            <span className="text-sm font-medium">{calculateProfileCompletion()}%</span>
+          </div>
+          <Progress value={calculateProfileCompletion()} className="h-2" />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-4xl px-4 py-12 mt-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Professional Profile</h1>
-          <p className="text-muted-foreground">
-            Complete your professional profile to stand out to potential connections
-          </p>
-        </div>
-        
-        {loading ? (
-          <div className="py-12 text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p>Loading your profile...</p>
+      <main className="flex-1 container max-w-5xl px-4 py-8 mt-12">
+        {isLoading ? (
+          <div className="space-y-6">
+            <div className="flex flex-col items-center">
+              <h2 className="text-2xl font-bold mb-4">Loading your profile...</h2>
+              <Progress value={loadingProgress} className="w-full max-w-md h-2" />
+            </div>
           </div>
         ) : (
-          <div className="space-y-8">
-            {/* Basic Info */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-xl font-semibold">Basic Information</h2>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                  <span className="font-medium w-32">Name:</span>
-                  <span>{userProfile?.name || 'Not specified'}</span>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                  <span className="font-medium w-32">Job Title:</span>
-                  <span>{userProfile?.jobTitle || 'Not specified'}</span>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                  <span className="font-medium w-32">Company:</span>
-                  <span>{userProfile?.company || 'Not specified'}</span>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                  <span className="font-medium w-32">Industry:</span>
-                  <span>{userProfile?.industry || 'Not specified'}</span>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-8">
-                  <span className="font-medium w-32">Bio:</span>
-                  <span className="flex-1">{userProfile?.bio || 'Not specified'}</span>
-                </div>
-              </div>
-              
-              <Button variant="outline" className="mt-6" onClick={() => {
-                window.location.href = "/create-profile?edit=true";
-              }}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Basic Info
-              </Button>
-            </Card>
+          <>
+            {renderProfileHeader()}
             
-            {/* Work Experience */}
-            <Accordion type="single" collapsible defaultValue="work" className="w-full">
+            {profileData?.bio && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">About</h2>
+                <p className="text-muted-foreground">{profileData.bio}</p>
+              </div>
+            )}
+            
+            {profileData?.skills && profileData.skills.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">Skills</h2>
+                <div className="flex flex-wrap gap-2">
+                  {profileData.skills.map((skill, index) => (
+                    <Badge key={index} variant="secondary">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <Separator className="my-8" />
+            
+            <Accordion type="single" collapsible className="w-full" defaultValue="work">
+              {/* Work Experience Section */}
               <AccordionItem value="work">
-                <AccordionTrigger className="py-4">
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
-                    <h2 className="text-xl font-semibold">Work Experience</h2>
+                <AccordionTrigger className="text-xl font-semibold">
+                  <div className="flex items-center">
+                    <Briefcase className="h-5 w-5 mr-2" />
+                    Work Experience
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Card className="p-6">
-                    {workExperiences.length > 0 ? (
-                      <div className="space-y-6">
-                        {workExperiences.map((work) => (
-                          <div key={work.id} className="border-t pt-4 first:border-t-0 first:pt-0">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h3 className="font-semibold text-lg">{work.position}</h3>
-                                <p className="text-muted-foreground">{work.company}</p>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>
-                                    {formatDate(work.start_date)} - {work.current ? 'Present' : formatDate(work.end_date)}
-                                  </span>
-                                  {work.location && (
-                                    <>
-                                      <span>•</span>
-                                      <MapPin className="h-3 w-3" />
-                                      <span>{work.location}</span>
-                                    </>
-                                  )}
-                                </div>
-                                {work.description && (
-                                  <p className="text-sm mt-2">{work.description}</p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => {
-                                    setItemToEdit(work);
-                                    setActiveDialog('work');
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleDelete('work_experience', work.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                  <div className="pt-4 pb-2">
+                    <Button 
+                      onClick={() => openDialog('work_experience', 'add')}
+                      className="mb-4"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Work Experience
+                    </Button>
+                    
+                    {workExperience.length > 0 ? (
+                      <div className="space-y-4">
+                        {workExperience.map(item => renderWorkExperienceItem(item))}
                       </div>
                     ) : (
-                      <div className="py-8 text-center">
-                        <p className="text-muted-foreground mb-4">No work experience added yet</p>
-                      </div>
+                      <p className="text-muted-foreground text-center py-4">
+                        No work experience added yet. Add your professional history to enhance your profile.
+                      </p>
                     )}
-                    
-                    <Dialog open={activeDialog === 'work'} onOpenChange={handleDialogChange}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full mt-4" onClick={() => {
-                          setItemToEdit(null);
-                          setActiveDialog('work');
-                        }}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Work Experience
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{itemToEdit ? 'Edit' : 'Add'} Work Experience</DialogTitle>
-                          <DialogDescription>
-                            Enter the details about your work experience
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <Form {...workForm}>
-                          <form onSubmit={workForm.handleSubmit(handleWorkSubmit)} className="space-y-4">
-                            <FormField
-                              control={workForm.control}
-                              name="company"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Company*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Company name" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={workForm.control}
-                              name="position"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Position*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Job title" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={workForm.control}
-                              name="location"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Location</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="City, Country" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <FormField
-                                control={workForm.control}
-                                name="start_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Start Date</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={workForm.control}
-                                name="end_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>End Date</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="date" 
-                                        {...field} 
-                                        disabled={workForm.watch('current')}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            
-                            <FormField
-                              control={workForm.control}
-                              name="current"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                  <div className="space-y-1 leading-none">
-                                    <FormLabel>I currently work here</FormLabel>
-                                  </div>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={workForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Description</FormLabel>
-                                  <FormControl>
-                                    <Textarea
-                                      placeholder="Describe your role and responsibilities"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <DialogFooter>
-                              <Button type="submit">Save</Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </Card>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
               
-              {/* Education */}
+              {/* Education Section */}
               <AccordionItem value="education">
-                <AccordionTrigger className="py-4">
-                  <div className="flex items-center gap-3">
-                    <GraduationCap className="h-5 w-5 text-muted-foreground" />
-                    <h2 className="text-xl font-semibold">Education</h2>
+                <AccordionTrigger className="text-xl font-semibold">
+                  <div className="flex items-center">
+                    <GraduationCap className="h-5 w-5 mr-2" />
+                    Education
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Card className="p-6">
-                    {educations.length > 0 ? (
-                      <div className="space-y-6">
-                        {educations.map((education) => (
-                          <div key={education.id} className="border-t pt-4 first:border-t-0 first:pt-0">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h3 className="font-semibold text-lg">{education.institution}</h3>
-                                <p className="text-muted-foreground">
-                                  {education.degree}{education.field_of_study ? `, ${education.field_of_study}` : ''}
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>
-                                    {formatDate(education.start_date)} - {formatDate(education.end_date)}
-                                  </span>
-                                </div>
-                                {education.description && (
-                                  <p className="text-sm mt-2">{education.description}</p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => {
-                                    setItemToEdit(education);
-                                    setActiveDialog('education');
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleDelete('education', education.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                  <div className="pt-4 pb-2">
+                    <Button 
+                      onClick={() => openDialog('education', 'add')}
+                      className="mb-4"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Education
+                    </Button>
+                    
+                    {education.length > 0 ? (
+                      <div className="space-y-4">
+                        {education.map(item => renderEducationItem(item))}
                       </div>
                     ) : (
-                      <div className="py-8 text-center">
-                        <p className="text-muted-foreground mb-4">No education added yet</p>
-                      </div>
+                      <p className="text-muted-foreground text-center py-4">
+                        No education added yet. Add your educational background to complete your profile.
+                      </p>
                     )}
-                    
-                    <Dialog open={activeDialog === 'education'} onOpenChange={handleDialogChange}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full mt-4" onClick={() => {
-                          setItemToEdit(null);
-                          setActiveDialog('education');
-                        }}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Education
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{itemToEdit ? 'Edit' : 'Add'} Education</DialogTitle>
-                          <DialogDescription>
-                            Enter the details about your education
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <Form {...educationForm}>
-                          <form onSubmit={educationForm.handleSubmit(handleEducationSubmit)} className="space-y-4">
-                            <FormField
-                              control={educationForm.control}
-                              name="institution"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Institution*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="University or school name" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={educationForm.control}
-                              name="degree"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Degree*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g. Bachelor's" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={educationForm.control}
-                              name="field_of_study"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Field of Study</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g. Computer Science" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <FormField
-                                control={educationForm.control}
-                                name="start_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Start Date</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={educationForm.control}
-                                name="end_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>End Date</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            
-                            <FormField
-                              control={educationForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Description</FormLabel>
-                                  <FormControl>
-                                    <Textarea
-                                      placeholder="Any additional details about your education"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <DialogFooter>
-                              <Button type="submit">Save</Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </Card>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
               
-              {/* Projects */}
+              {/* Projects Section */}
               <AccordionItem value="projects">
-                <AccordionTrigger className="py-4">
-                  <div className="flex items-center gap-3">
-                    <FileCode className="h-5 w-5 text-muted-foreground" />
-                    <h2 className="text-xl font-semibold">Projects</h2>
+                <AccordionTrigger className="text-xl font-semibold">
+                  <div className="flex items-center">
+                    <ListFilter className="h-5 w-5 mr-2" />
+                    Projects
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Card className="p-6">
+                  <div className="pt-4 pb-2">
+                    <Button 
+                      onClick={() => openDialog('project', 'add')}
+                      className="mb-4"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Project
+                    </Button>
+                    
                     {projects.length > 0 ? (
-                      <div className="space-y-6">
-                        {projects.map((project) => (
-                          <div key={project.id} className="border-t pt-4 first:border-t-0 first:pt-0">
-                            <div className="flex justify-between items-start">
-                              <div className="w-full pr-8">
-                                <div className="flex items-center justify-between">
-                                  <h3 className="font-semibold text-lg">{project.title}</h3>
-                                  {project.url && (
-                                    <a
-                                      href={project.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-primary hover:text-primary/80 transition-colors"
-                                    >
-                                      <ExternalLink size={16} />
-                                    </a>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>
-                                    {formatDate(project.start_date)} - {project.current ? 'Present' : formatDate(project.end_date)}
-                                  </span>
-                                </div>
-                                
-                                {project.image_url && (
-                                  <div className="h-40 w-full mt-2 overflow-hidden rounded-md">
-                                    <img 
-                                      src={project.image_url} 
-                                      alt={project.title} 
-                                      className="h-full w-full object-cover"
-                                      loading="lazy"
-                                    />
-                                  </div>
-                                )}
-                                
-                                {project.description && (
-                                  <p className="text-sm mt-2">{project.description}</p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => {
-                                    setItemToEdit(project);
-                                    setActiveDialog('project');
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleDelete('projects', project.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="space-y-4">
+                        {projects.map(item => renderProjectItem(item))}
                       </div>
                     ) : (
-                      <div className="py-8 text-center">
-                        <p className="text-muted-foreground mb-4">No projects added yet</p>
-                      </div>
+                      <p className="text-muted-foreground text-center py-4">
+                        No projects added yet. Showcase your work by adding projects to your profile.
+                      </p>
                     )}
-                    
-                    <Dialog open={activeDialog === 'project'} onOpenChange={handleDialogChange}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full mt-4" onClick={() => {
-                          setItemToEdit(null);
-                          setActiveDialog('project');
-                        }}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Project
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{itemToEdit ? 'Edit' : 'Add'} Project</DialogTitle>
-                          <DialogDescription>
-                            Enter the details about your project
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <Form {...projectForm}>
-                          <form onSubmit={projectForm.handleSubmit(handleProjectSubmit)} className="space-y-4">
-                            <FormField
-                              control={projectForm.control}
-                              name="title"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Title*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Project name" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <FormField
-                                control={projectForm.control}
-                                name="start_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Start Date</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={projectForm.control}
-                                name="end_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>End Date</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="date" 
-                                        {...field} 
-                                        disabled={projectForm.watch('current')}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            
-                            <FormField
-                              control={projectForm.control}
-                              name="current"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                  <div className="space-y-1 leading-none">
-                                    <FormLabel>This is an ongoing project</FormLabel>
-                                  </div>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={projectForm.control}
-                              name="url"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Project URL</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="https://..." {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={projectForm.control}
-                              name="image_url"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Image URL</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="https://..." {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Add a screenshot or cover image for your project
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={projectForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Description</FormLabel>
-                                  <FormControl>
-                                    <Textarea
-                                      placeholder="Describe your project"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <DialogFooter>
-                              <Button type="submit">Save</Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </Card>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
               
-              {/* Certificates */}
+              {/* Certificates Section */}
               <AccordionItem value="certificates">
-                <AccordionTrigger className="py-4">
-                  <div className="flex items-center gap-3">
-                    <Award className="h-5 w-5 text-muted-foreground" />
-                    <h2 className="text-xl font-semibold">Certificates</h2>
+                <AccordionTrigger className="text-xl font-semibold">
+                  <div className="flex items-center">
+                    <Award className="h-5 w-5 mr-2" />
+                    Certificates
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Card className="p-6">
+                  <div className="pt-4 pb-2">
+                    <Button 
+                      onClick={() => openDialog('certificate', 'add')}
+                      className="mb-4"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Certificate
+                    </Button>
+                    
                     {certificates.length > 0 ? (
-                      <div className="space-y-6">
-                        {certificates.map((certificate) => (
-                          <div key={certificate.id} className="border-t pt-4 first:border-t-0 first:pt-0">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="flex items-center justify-between">
-                                  <h3 className="font-semibold text-lg">{certificate.name}</h3>
-                                  {certificate.credential_url && (
-                                    <a
-                                      href={certificate.credential_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-primary hover:text-primary/80 transition-colors"
-                                    >
-                                      <ExternalLink size={16} />
-                                    </a>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground">{certificate.issuing_organization}</p>
-                                
-                                {certificate.issue_date && (
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                    <Calendar className="h-3 w-3" />
-                                    <span>
-                                      Issued {formatDate(certificate.issue_date)}
-                                      {certificate.expiration_date && ` • Expires ${formatDate(certificate.expiration_date)}`}
-                                    </span>
-                                  </div>
-                                )}
-                                
-                                {certificate.credential_id && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Credential ID: {certificate.credential_id}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => {
-                                    setItemToEdit(certificate);
-                                    setActiveDialog('certificate');
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleDelete('certificates', certificate.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="space-y-4">
+                        {certificates.map(item => renderCertificateItem(item))}
                       </div>
                     ) : (
-                      <div className="py-8 text-center">
-                        <p className="text-muted-foreground mb-4">No certificates added yet</p>
-                      </div>
+                      <p className="text-muted-foreground text-center py-4">
+                        No certificates added yet. Add your certifications to highlight your skills and qualifications.
+                      </p>
                     )}
-                    
-                    <Dialog open={activeDialog === 'certificate'} onOpenChange={handleDialogChange}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full mt-4" onClick={() => {
-                          setItemToEdit(null);
-                          setActiveDialog('certificate');
-                        }}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Certificate
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{itemToEdit ? 'Edit' : 'Add'} Certificate</DialogTitle>
-                          <DialogDescription>
-                            Enter the details about your certificate
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <Form {...certificateForm}>
-                          <form onSubmit={certificateForm.handleSubmit(handleCertificateSubmit)} className="space-y-4">
-                            <FormField
-                              control={certificateForm.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Certificate Name*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g. AWS Certified Developer" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={certificateForm.control}
-                              name="issuing_organization"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Issuing Organization*</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g. Amazon Web Services" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <FormField
-                                control={certificateForm.control}
-                                name="issue_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Issue Date</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={certificateForm.control}
-                                name="expiration_date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Expiration Date</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            
-                            <FormField
-                              control={certificateForm.control}
-                              name="credential_id"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Credential ID</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g. ABC123XYZ" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={certificateForm.control}
-                              name="credential_url"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Credential URL</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="https://..." {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <DialogFooter>
-                              <Button type="submit">Save</Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </Card>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-          </div>
+          </>
         )}
       </main>
+      
+      {/* Dialogs for adding/editing items */}
+      <Dialog open={!!dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {dialogOpen?.action === 'add' ? 'Add' : 'Edit'} {' '}
+              {dialogOpen?.type === 'work_experience' && 'Work Experience'}
+              {dialogOpen?.type === 'education' && 'Education'}
+              {dialogOpen?.type === 'project' && 'Project'}
+              {dialogOpen?.type === 'certificate' && 'Certificate'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <ScrollArea className="pr-4">
+            {dialogOpen?.type === 'work_experience' && renderWorkExperienceForm()}
+            {dialogOpen?.type === 'education' && renderEducationForm()}
+            {dialogOpen?.type === 'project' && renderProjectForm()}
+            {dialogOpen?.type === 'certificate' && renderCertificateForm()}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
