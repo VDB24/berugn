@@ -12,6 +12,7 @@ import Browse from '@/pages/Browse';
 import Matches from '@/pages/Matches';
 import Preferences from '@/pages/Preferences';
 import CreateProfile from '@/pages/CreateProfile';
+import ExtendedProfile from '@/pages/ExtendedProfile';
 import About from '@/pages/About';
 import Features from '@/pages/Features';
 import NotFound from '@/pages/NotFound';
@@ -33,6 +34,7 @@ const App = () => {
                   <Route path="/matches" element={<Matches />} />
                   <Route path="/preferences" element={<Preferences />} />
                   <Route path="/create-profile" element={<CreateProfile />} />
+                  <Route path="/extended-profile" element={<ExtendedProfile />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/features" element={<Features />} />
                   <Route path="*" element={<NotFound />} />

@@ -1,13 +1,14 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
-import { useToast } from '@/components/ui/use-toast';
-import { Navigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { Navigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/ProfileCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Star, RefreshCw, Container } from 'lucide-react';
+import { Star, RefreshCw, Container, User } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const Browse = () => {
@@ -209,6 +210,14 @@ const Browse = () => {
           <p className="text-gray-600 dark:text-gray-400">
             Find and connect with professionals in your field
           </p>
+          
+          {/* Edit profile link */}
+          <Button variant="outline" size="sm" className="mt-2" asChild>
+            <Link to="/extended-profile">
+              <User className="w-4 h-4 mr-2" />
+              Complete Your Profile
+            </Link>
+          </Button>
           
           {/* Daily capacity progress bar */}
           <div className="mt-6 mb-3">

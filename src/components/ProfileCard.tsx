@@ -467,6 +467,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                    certificates.length === 0 && (
                     <div className="py-4 text-center text-muted-foreground">
                       <p>No additional profile information available</p>
+                      <Button 
+                        variant="link" 
+                        className="text-primary mt-2"
+                        onClick={() => window.open('/extended-profile', '_blank')}
+                      >
+                        Add details to your own profile
+                      </Button>
                     </div>
                   )}
                 </>

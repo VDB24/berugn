@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -102,6 +101,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [swipedProfileIds, setSwipedProfileIds] = useState<Set<string>>(new Set());
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
+  // Track profiles that have already been requested
+  const [requestedProfileIds, setRequestedProfileIds] = useState<Set<string>>(new Set());
 
   // Fetch profiles from Supabase
   useEffect(() => {
@@ -137,7 +138,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fetchAllProfiles();
   }, []);
 
-  // Load swiped profiles from localStorage
+  // Load swiped profiles and requested profiles from localStorage
   useEffect(() => {
     if (!currentUser) return;
     
@@ -149,6 +150,18 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.log('Loaded swiped profiles:', parsedIds.size);
       } catch (error) {
         console.error("Error parsing saved swiped IDs:", error);
+      }
+    }
+    
+    // Load requested profile IDs from localStorage
+    const savedRequestedIds = localStorage.getItem(`requested_profiles_${currentUser.id}`);
+    if (savedRequestedIds) {
+      try {
+        const parsedIds = new Set<string>(JSON.parse(savedRequestedIds));
+        setRequestedProfileIds(parsedIds);
+        console.log('Loaded requested profiles:', parsedIds.size);
+      } catch (error) {
+        console.error("Error parsing saved requested IDs:", error);
       }
     }
   }, [currentUser]);
@@ -184,16 +197,19 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       console.log("Already connected with users:", connectedUserIds.length);
       
-      // Combine with tracked swiped profile IDs
+      // Combine with tracked swiped profile IDs and requested profile IDs
       const swipedIds = Array.from(swipedProfileIds);
+      const requestedIds = Array.from(requestedProfileIds);
       
       // Get all profiles excluding:
       // 1. Current user's profile
       // 2. Profiles that have been swiped
       // 3. Profiles that the user has already connected with
+      // 4. Profiles that the user has already requested
       const availableProfiles = allProfiles.filter(p => 
         p.userId !== currentUser.id && 
         !swipedIds.includes(p.id) &&
+        !requestedIds.includes(p.userId) &&
         !connectedUserIds.includes(p.userId)
       );
       
@@ -221,7 +237,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoadingProfiles(false);
     }
-  }, [currentUser, isLoadingProfiles, swipedProfileIds, allProfiles]);
+  }, [currentUser, isLoadingProfiles, swipedProfileIds, allProfiles, requestedProfileIds]);
 
   useEffect(() => {
     if (!currentUser || !isInitialDataLoaded) {
@@ -432,6 +448,24 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const profileToSwipe = allProfiles.find(p => p.id === profileId);
       
       if (direction === 'right' && profileToSwipe) {
+        // Check if we've already requested this user
+        if (requestedProfileIds.has(profileToSwipe.userId)) {
+          console.log(`Already requested connection with ${profileToSwipe.name}, skipping...`);
+          
+          // Still remove from potential connections
+          setPotentialConnections(prevConnections => {
+            return prevConnections.filter(p => p.id !== profileId);
+          });
+          
+          return;
+        }
+        
+        // Add to requested profiles
+        const newRequestedIds = new Set(requestedProfileIds);
+        newRequestedIds.add(profileToSwipe.userId);
+        setRequestedProfileIds(newRequestedIds);
+        localStorage.setItem(`requested_profiles_${currentUser.id}`, JSON.stringify([...newRequestedIds]));
+        
         // Create connection in Supabase
         try {
           const { data, error } = await supabase
