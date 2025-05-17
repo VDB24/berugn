@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -418,7 +419,12 @@ const ExtendedProfile = () => {
     
     try {
       const formattedData = {
-        ...data,
+        user_id: currentUser.id,
+        company: data.company,
+        position: data.position,
+        location: data.location || null,
+        description: data.description || null,
+        current: data.current || false,
         start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
         end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
       };
@@ -426,12 +432,7 @@ const ExtendedProfile = () => {
       if (dialogOpen?.action === 'add') {
         const { data: newWork, error } = await supabase
           .from('work_experience')
-          .insert({
-            ...data,
-            user_id: currentUser.id,
-            company: data.company,
-            position: data.position
-          })
+          .insert(formattedData)
           .select()
           .single();
           
@@ -482,7 +483,11 @@ const ExtendedProfile = () => {
     
     try {
       const formattedData = {
-        ...data,
+        user_id: currentUser.id,
+        institution: data.institution,
+        degree: data.degree,
+        field_of_study: data.field_of_study || null,
+        description: data.description || null,
         start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
         end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
       };
@@ -490,12 +495,7 @@ const ExtendedProfile = () => {
       if (dialogOpen?.action === 'add') {
         const { data: newEdu, error } = await supabase
           .from('education')
-          .insert({
-            ...data,
-            user_id: currentUser.id,
-            institution: data.institution,
-            degree: data.degree
-          })
+          .insert(formattedData)
           .select()
           .single();
           
@@ -546,7 +546,12 @@ const ExtendedProfile = () => {
     
     try {
       const formattedData = {
-        ...data,
+        user_id: currentUser.id,
+        title: data.title,
+        description: data.description || null,
+        url: data.url || null,
+        image_url: data.image_url || null,
+        current: data.current || false,
         start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
         end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
       };
@@ -554,11 +559,7 @@ const ExtendedProfile = () => {
       if (dialogOpen?.action === 'add') {
         const { data: newProject, error } = await supabase
           .from('projects')
-          .insert({
-            ...data,
-            user_id: currentUser.id,
-            title: data.title
-          })
+          .insert(formattedData)
           .select()
           .single();
           
@@ -609,7 +610,11 @@ const ExtendedProfile = () => {
     
     try {
       const formattedData = {
-        ...data,
+        user_id: currentUser.id,
+        name: data.name,
+        issuing_organization: data.issuing_organization,
+        credential_id: data.credential_id || null,
+        credential_url: data.credential_url || null,
         issue_date: data.issue_date ? format(data.issue_date, 'yyyy-MM-dd') : null,
         expiration_date: data.expiration_date ? format(data.expiration_date, 'yyyy-MM-dd') : null,
       };
@@ -617,12 +622,7 @@ const ExtendedProfile = () => {
       if (dialogOpen?.action === 'add') {
         const { data: newCert, error } = await supabase
           .from('certificates')
-          .insert({
-            ...data,
-            user_id: currentUser.id,
-            name: data.name,
-            issuing_organization: data.issuing_organization
-          })
+          .insert(formattedData)
           .select()
           .single();
           
@@ -1017,6 +1017,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1056,6 +1057,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1193,6 +1195,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1229,6 +1232,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1343,6 +1347,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1382,6 +1387,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1505,6 +1511,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1541,6 +1548,7 @@ const ExtendedProfile = () => {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
