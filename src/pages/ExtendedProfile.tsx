@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +13,6 @@ import {
   GraduationCap, 
   Award, 
   Briefcase, 
-  Calendar, 
   ListFilter, 
   Plus, 
   Edit, 
