@@ -56,6 +56,13 @@ const ExtendedProfile = () => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [hasError, setHasError] = useState(false);
   
+  // Debug logging
+  console.log('ExtendedProfile rendering', { 
+    currentUser, 
+    isLoading, 
+    hasProfile: !!profileData 
+  });
+
   // Fetch all profile data when component mounts
   useEffect(() => {
     if (currentUser) {
@@ -81,7 +88,7 @@ const ExtendedProfile = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, toast]);
   
   // Simulated progressive loading for better UX
   useEffect(() => {
@@ -158,12 +165,34 @@ const ExtendedProfile = () => {
         }
       } else {
         console.log('Profile data fetched:', profileData);
-        // Ensure skills is always an array of strings
-        const formattedProfileData = {
+        // Process skills data - ensure it's always an array
+        let processedSkills: string[] = [];
+        
+        if (profileData.skills) {
+          if (Array.isArray(profileData.skills)) {
+            processedSkills = profileData.skills;
+          } else if (typeof profileData.skills === 'string') {
+            try {
+              processedSkills = JSON.parse(profileData.skills);
+            } catch (e) {
+              console.error('Failed to parse skills string:', e);
+              processedSkills = [];
+            }
+          } else if (typeof profileData.skills === 'object') {
+            try {
+              processedSkills = Object.values(profileData.skills).map(s => String(s));
+            } catch (e) {
+              console.error('Failed to convert skills object to array:', e);
+              processedSkills = [];
+            }
+          }
+        }
+        
+        // Set profile data with processed skills
+        setProfileData({
           ...profileData,
-          skills: Array.isArray(profileData.skills) ? profileData.skills : []
-        };
-        setProfileData(formattedProfileData as ProfileData);
+          skills: processedSkills
+        } as ProfileData);
       }
       
       // Fetch work experience
@@ -657,17 +686,17 @@ const ExtendedProfile = () => {
 
   // Calculate profile completion percentage
   const calculateProfileCompletion = () => {
+    if (!profileData) return 0;
+    
     let score = 0;
     let total = 5; // Base sections to complete
     
     // Check profile data
-    if (profileData) {
-      if (profileData.name) score++;
-      if (profileData.job_title) score++;
-      if (profileData.bio) score++;
-      if (profileData.skills && profileData.skills.length > 0) score++;
-      if (profileData.industry) score++;
-    }
+    if (profileData.name) score++;
+    if (profileData.job_title) score++;
+    if (profileData.bio) score++;
+    if (profileData.skills && profileData.skills.length > 0) score++;
+    if (profileData.industry) score++;
     
     // Check other sections
     if (workExperience.length > 0) score++;
@@ -729,12 +758,10 @@ const ExtendedProfile = () => {
           </div>
         ) : (
           <>
-            {profileData && (
-              <ProfileHeader 
-                profileData={profileData} 
-                completionPercentage={calculateProfileCompletion()} 
-              />
-            )}
+            <ProfileHeader 
+              profileData={profileData} 
+              completionPercentage={calculateProfileCompletion()} 
+            />
             
             {profileData?.bio && (
               <div className="mb-8">

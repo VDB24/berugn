@@ -22,10 +22,24 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ profileData, completionPercentage }: ProfileHeaderProps) => {
+  if (!profileData) {
+    return (
+      <div className="flex flex-col md:flex-row gap-6 items-center md:items-start mb-8">
+        <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center">
+          <User className="h-12 w-12 text-muted-foreground" />
+        </div>
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-3xl font-bold">Loading Profile...</h1>
+          <p className="text-xl text-muted-foreground mt-1">Please wait</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col md:flex-row gap-6 items-center md:items-start mb-8">
       <Avatar className="h-24 w-24">
-        {profileData?.profile_image ? (
+        {profileData.profile_image ? (
           <AvatarImage src={profileData.profile_image} alt={profileData.name} />
         ) : (
           <AvatarFallback>
@@ -35,19 +49,19 @@ const ProfileHeader = ({ profileData, completionPercentage }: ProfileHeaderProps
       </Avatar>
       
       <div className="flex-1 text-center md:text-left">
-        <h1 className="text-3xl font-bold">{profileData?.name || 'Your Name'}</h1>
+        <h1 className="text-3xl font-bold">{profileData.name || 'Your Name'}</h1>
         <p className="text-xl text-muted-foreground mt-1">
-          {profileData?.job_title || 'Job Title'} 
-          {profileData?.company && ` at ${profileData.company}`}
+          {profileData.job_title || 'Job Title'} 
+          {profileData.company && ` at ${profileData.company}`}
         </p>
         
-        {profileData?.industry && (
+        {profileData.industry && (
           <Badge variant="outline" className="mt-2">
             {profileData.industry}
           </Badge>
         )}
         
-        {profileData?.linkedin_url && (
+        {profileData.linkedin_url && (
           <div className="mt-3">
             <a 
               href={profileData.linkedin_url} 
