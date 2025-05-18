@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,8 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 // Import types and new components
 import { TableName, ProfileData, WorkExperience, Education, Project, Certificate } from '@/components/profile/types';
@@ -38,6 +41,7 @@ import { CertificateFormData } from '@/components/profile/CertificateForm';
 const ExtendedProfile = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // State for profile data and other sections
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
@@ -70,12 +74,14 @@ const ExtendedProfile = () => {
             description: 'Please login to view your profile.',
             variant: 'destructive',
           });
+          // Redirect to login page
+          navigate('/login');
         }
       }, 3000);
       
       return () => clearTimeout(timer);
     }
-  }, [currentUser]);
+  }, [currentUser, navigate]);
   
   // Simulated progressive loading for better UX
   useEffect(() => {
@@ -97,6 +103,13 @@ const ExtendedProfile = () => {
   
   // Fetch all profile sections
   const fetchAllProfileData = async () => {
+    if (!currentUser?.id) {
+      console.log('No user ID available for fetching profile data');
+      setIsLoading(false);
+      setHasError(true);
+      return;
+    }
+    
     setIsLoading(true);
     setHasError(false);
     try {
@@ -145,7 +158,12 @@ const ExtendedProfile = () => {
         }
       } else {
         console.log('Profile data fetched:', profileData);
-        setProfileData(profileData as ProfileData);
+        // Ensure skills is always an array of strings
+        const formattedProfileData = {
+          ...profileData,
+          skills: Array.isArray(profileData.skills) ? profileData.skills : []
+        };
+        setProfileData(formattedProfileData as ProfileData);
       }
       
       // Fetch work experience
@@ -671,6 +689,9 @@ const ExtendedProfile = () => {
           <div className="space-y-6 text-center">
             <h2 className="text-2xl font-bold">Authentication Required</h2>
             <p>Please log in to view your profile.</p>
+            <Button onClick={() => navigate('/login')} variant="default">
+              Log In
+            </Button>
           </div>
         </main>
       </div>
@@ -699,19 +720,21 @@ const ExtendedProfile = () => {
           <div className="space-y-6 text-center">
             <h2 className="text-2xl font-bold text-destructive">Error Loading Profile</h2>
             <p>There was an error loading your profile data. Please try refreshing the page.</p>
-            <button 
+            <Button 
               onClick={() => fetchAllProfileData()} 
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              variant="default"
             >
               Try Again
-            </button>
+            </Button>
           </div>
         ) : (
           <>
-            <ProfileHeader 
-              profileData={profileData} 
-              completionPercentage={calculateProfileCompletion()} 
-            />
+            {profileData && (
+              <ProfileHeader 
+                profileData={profileData} 
+                completionPercentage={calculateProfileCompletion()} 
+              />
+            )}
             
             {profileData?.bio && (
               <div className="mb-8">

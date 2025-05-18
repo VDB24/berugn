@@ -34,7 +34,7 @@ const App = () => {
                   <Route path="/matches" element={<Matches />} />
                   <Route path="/preferences" element={<Preferences />} />
                   <Route path="/create-profile" element={<CreateProfile />} />
-                  <Route path="/profile" element={<ExtendedProfile />} />
+                  <Route path="/profile" element={<Navigate to="/extended-profile" replace />} />
                   <Route path="/extended-profile" element={<ExtendedProfile />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/features" element={<Features />} />
