@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 // Import types and new components
 import { TableName, ProfileData, WorkExperience, Education, Project, Certificate } from '@/components/profile/types';
