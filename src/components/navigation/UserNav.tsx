@@ -82,7 +82,7 @@ const UserNav = () => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
-            <Link to="/extended-profile">
+            <Link to="/profile">
               <User className="h-4 w-4 mr-2" />
               Profile
             </Link>
