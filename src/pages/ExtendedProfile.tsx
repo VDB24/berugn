@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -20,6 +22,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 // Import types and new components
 import { TableName, ProfileData, WorkExperience, Education, Project, Certificate } from '@/components/profile/types';
@@ -38,6 +41,7 @@ import { CertificateFormData } from '@/components/profile/CertificateForm';
 const ExtendedProfile = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // State for profile data and other sections
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
@@ -51,6 +55,9 @@ const ExtendedProfile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [hasError, setHasError] = useState(false);
+  
+  console.log("ExtendedProfile rendered, currentUser:", currentUser);
+  console.log("isLoading:", isLoading, "hasError:", hasError);
   
   // Fetch all profile data when component mounts
   useEffect(() => {
@@ -661,6 +668,11 @@ const ExtendedProfile = () => {
     
     return Math.round((score / total) * 100);
   };
+  
+  // Handle login redirect
+  const handleLoginRedirect = () => {
+    navigate('/login');
+  };
 
   // Render a fallback when there's no auth
   if (!currentUser && !isLoading) {
@@ -671,6 +683,7 @@ const ExtendedProfile = () => {
           <div className="space-y-6 text-center">
             <h2 className="text-2xl font-bold">Authentication Required</h2>
             <p>Please log in to view your profile.</p>
+            <Button onClick={handleLoginRedirect}>Log In</Button>
           </div>
         </main>
       </div>
@@ -699,117 +712,131 @@ const ExtendedProfile = () => {
           <div className="space-y-6 text-center">
             <h2 className="text-2xl font-bold text-destructive">Error Loading Profile</h2>
             <p>There was an error loading your profile data. Please try refreshing the page.</p>
-            <button 
+            <Button 
               onClick={() => fetchAllProfileData()} 
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
               Try Again
-            </button>
+            </Button>
           </div>
         ) : (
           <>
-            <ProfileHeader 
-              profileData={profileData} 
-              completionPercentage={calculateProfileCompletion()} 
-            />
-            
-            {profileData?.bio && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-2">About</h2>
-                <p className="text-muted-foreground">{profileData.bio}</p>
+            {profileData ? (
+              <>
+                <ProfileHeader 
+                  profileData={profileData} 
+                  completionPercentage={calculateProfileCompletion()} 
+                />
+                
+                {profileData?.bio && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold mb-2">About</h2>
+                    <p className="text-muted-foreground">{profileData.bio}</p>
+                  </div>
+                )}
+                
+                {profileData?.skills && profileData.skills.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold mb-2">Skills</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {profileData.skills.map((skill, index) => (
+                        <Badge key={index} variant="secondary">{skill}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <Separator className="my-8" />
+                
+                <Accordion type="single" collapsible className="w-full" defaultValue="work">
+                  {/* Work Experience Section */}
+                  <AccordionItem value="work">
+                    <AccordionTrigger className="text-xl font-semibold">
+                      <div className="flex items-center">
+                        <Briefcase className="h-5 w-5 mr-2" />
+                        Work Experience
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <WorkExperienceSection 
+                        items={workExperience}
+                        onAdd={handleAddWorkExperience}
+                        onUpdate={handleUpdateWorkExperience}
+                        onDelete={(id) => handleDelete('work_experience', id)}
+                        isSaving={isSaving}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Education Section */}
+                  <AccordionItem value="education">
+                    <AccordionTrigger className="text-xl font-semibold">
+                      <div className="flex items-center">
+                        <GraduationCap className="h-5 w-5 mr-2" />
+                        Education
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <EducationSection 
+                        items={education}
+                        onAdd={handleAddEducation}
+                        onUpdate={handleUpdateEducation}
+                        onDelete={(id) => handleDelete('education', id)}
+                        isSaving={isSaving}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Projects Section */}
+                  <AccordionItem value="projects">
+                    <AccordionTrigger className="text-xl font-semibold">
+                      <div className="flex items-center">
+                        <ListFilter className="h-5 w-5 mr-2" />
+                        Projects
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <ProjectsSection 
+                        items={projects}
+                        onAdd={handleAddProject}
+                        onUpdate={handleUpdateProject}
+                        onDelete={(id) => handleDelete('projects', id)}
+                        isSaving={isSaving}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Certificates Section */}
+                  <AccordionItem value="certificates">
+                    <AccordionTrigger className="text-xl font-semibold">
+                      <div className="flex items-center">
+                        <Award className="h-5 w-5 mr-2" />
+                        Certificates
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <CertificatesSection 
+                        items={certificates}
+                        onAdd={handleAddCertificate}
+                        onUpdate={handleUpdateCertificate}
+                        onDelete={(id) => handleDelete('certificates', id)}
+                        isSaving={isSaving}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p>No profile data found. Please create a profile.</p>
+                <Button 
+                  onClick={() => fetchAllProfileData()} 
+                  className="mt-4"
+                >
+                  Retry Loading Profile
+                </Button>
               </div>
             )}
-            
-            {profileData?.skills && profileData.skills.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-2">Skills</h2>
-                <div className="flex flex-wrap gap-2">
-                  {profileData.skills.map((skill, index) => (
-                    <Badge key={index} variant="secondary">{skill}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            <Separator className="my-8" />
-            
-            <Accordion type="single" collapsible className="w-full" defaultValue="work">
-              {/* Work Experience Section */}
-              <AccordionItem value="work">
-                <AccordionTrigger className="text-xl font-semibold">
-                  <div className="flex items-center">
-                    <Briefcase className="h-5 w-5 mr-2" />
-                    Work Experience
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <WorkExperienceSection 
-                    items={workExperience}
-                    onAdd={handleAddWorkExperience}
-                    onUpdate={handleUpdateWorkExperience}
-                    onDelete={(id) => handleDelete('work_experience', id)}
-                    isSaving={isSaving}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-              
-              {/* Education Section */}
-              <AccordionItem value="education">
-                <AccordionTrigger className="text-xl font-semibold">
-                  <div className="flex items-center">
-                    <GraduationCap className="h-5 w-5 mr-2" />
-                    Education
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <EducationSection 
-                    items={education}
-                    onAdd={handleAddEducation}
-                    onUpdate={handleUpdateEducation}
-                    onDelete={(id) => handleDelete('education', id)}
-                    isSaving={isSaving}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-              
-              {/* Projects Section */}
-              <AccordionItem value="projects">
-                <AccordionTrigger className="text-xl font-semibold">
-                  <div className="flex items-center">
-                    <ListFilter className="h-5 w-5 mr-2" />
-                    Projects
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ProjectsSection 
-                    items={projects}
-                    onAdd={handleAddProject}
-                    onUpdate={handleUpdateProject}
-                    onDelete={(id) => handleDelete('projects', id)}
-                    isSaving={isSaving}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-              
-              {/* Certificates Section */}
-              <AccordionItem value="certificates">
-                <AccordionTrigger className="text-xl font-semibold">
-                  <div className="flex items-center">
-                    <Award className="h-5 w-5 mr-2" />
-                    Certificates
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <CertificatesSection 
-                    items={certificates}
-                    onAdd={handleAddCertificate}
-                    onUpdate={handleUpdateCertificate}
-                    onDelete={(id) => handleDelete('certificates', id)}
-                    isSaving={isSaving}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
           </>
         )}
       </main>
