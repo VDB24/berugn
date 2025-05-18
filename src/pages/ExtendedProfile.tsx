@@ -19,6 +19,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Import types and new components
 import { TableName, ProfileData, WorkExperience, Education, Project, Certificate } from '@/components/profile/types';
@@ -49,11 +50,30 @@ const ExtendedProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [hasError, setHasError] = useState(false);
   
   // Fetch all profile data when component mounts
   useEffect(() => {
     if (currentUser) {
+      console.log('Current user found:', currentUser.id);
       fetchAllProfileData();
+    } else {
+      console.log('No current user found');
+      // Set a timeout to allow for auth to initialize if it's just taking time
+      const timer = setTimeout(() => {
+        if (!currentUser) {
+          console.log('Still no current user after timeout');
+          setIsLoading(false);
+          setHasError(true);
+          toast({
+            title: 'Authentication Error',
+            description: 'Please login to view your profile.',
+            variant: 'destructive',
+          });
+        }
+      }, 3000);
+      
+      return () => clearTimeout(timer);
     }
   }, [currentUser]);
   
@@ -78,62 +98,147 @@ const ExtendedProfile = () => {
   // Fetch all profile sections
   const fetchAllProfileData = async () => {
     setIsLoading(true);
+    setHasError(false);
     try {
+      console.log('Fetching profile data for user:', currentUser.id);
+      
       // Fetch profile info
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', currentUser.id)
         .single();
       
-      setProfileData(profileData as ProfileData);
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        // If no profile exists yet, create a minimal one
+        if (profileError.code === 'PGRST116') {
+          console.log('No profile found, creating minimal profile');
+          const minimal: ProfileData = {
+            name: currentUser.email?.split('@')[0] || 'New User',
+            job_title: null,
+            company: null,
+            bio: null,
+            linkedin_url: null,
+            profile_image: null,
+            experience: null,
+            industry: null,
+            skills: []
+          };
+          setProfileData(minimal);
+          
+          // Try to create a minimal profile in the database
+          try {
+            await supabase
+              .from('profiles')
+              .insert({
+                user_id: currentUser.id,
+                name: minimal.name,
+                skills: []
+              });
+            console.log('Created minimal profile');
+          } catch (insertError) {
+            console.error('Error creating minimal profile:', insertError);
+          }
+        } else {
+          throw profileError;
+        }
+      } else {
+        console.log('Profile data fetched:', profileData);
+        setProfileData(profileData as ProfileData);
+      }
       
       // Fetch work experience
-      const { data: workData } = await supabase
+      const { data: workData, error: workError } = await supabase
         .from('work_experience')
         .select('*')
         .eq('user_id', currentUser.id)
         .order('start_date', { ascending: false });
       
-      setWorkExperience(workData as WorkExperience[]);
+      if (workError) {
+        console.error('Error fetching work experience:', workError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load work experience data.',
+          variant: 'destructive',
+        });
+      } else {
+        console.log('Work experience data fetched:', workData?.length || 0, 'items');
+        setWorkExperience(workData as WorkExperience[]);
+      }
       
       // Fetch education
-      const { data: eduData } = await supabase
+      const { data: eduData, error: eduError } = await supabase
         .from('education')
         .select('*')
         .eq('user_id', currentUser.id)
         .order('start_date', { ascending: false });
       
-      setEducation(eduData as Education[]);
+      if (eduError) {
+        console.error('Error fetching education:', eduError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load education data.',
+          variant: 'destructive',
+        });
+      } else {
+        console.log('Education data fetched:', eduData?.length || 0, 'items');
+        setEducation(eduData as Education[]);
+      }
       
       // Fetch projects
-      const { data: projectData } = await supabase
+      const { data: projectData, error: projectError } = await supabase
         .from('projects')
         .select('*')
         .eq('user_id', currentUser.id)
         .order('start_date', { ascending: false });
       
-      setProjects(projectData as Project[]);
+      if (projectError) {
+        console.error('Error fetching projects:', projectError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load projects data.',
+          variant: 'destructive',
+        });
+      } else {
+        console.log('Projects data fetched:', projectData?.length || 0, 'items');
+        setProjects(projectData as Project[]);
+      }
       
       // Fetch certificates
-      const { data: certData } = await supabase
+      const { data: certData, error: certError } = await supabase
         .from('certificates')
         .select('*')
         .eq('user_id', currentUser.id)
         .order('issue_date', { ascending: false });
       
-      setCertificates(certData as Certificate[]);
+      if (certError) {
+        console.error('Error fetching certificates:', certError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load certificates data.',
+          variant: 'destructive',
+        });
+      } else {
+        console.log('Certificates data fetched:', certData?.length || 0, 'items');
+        setCertificates(certData as Certificate[]);
+      }
       
       console.log('All profile data loaded successfully');
     } catch (error) {
       console.error('Error loading profile data:', error);
+      setHasError(true);
       toast({
         title: 'Error',
         description: 'Failed to load profile data. Please try again.',
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
+      // Ensure we exit the loading state even if there are errors
+      setTimeout(() => {
+        setIsLoading(false);
+        setLoadingProgress(100);
+      }, 800); // Short delay for smoother transition
     }
   };
   
@@ -557,6 +662,21 @@ const ExtendedProfile = () => {
     return Math.round((score / total) * 100);
   };
 
+  // Render a fallback when there's no auth
+  if (!currentUser && !isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container max-w-5xl px-4 py-8 mt-12">
+          <div className="space-y-6 text-center">
+            <h2 className="text-2xl font-bold">Authentication Required</h2>
+            <p>Please log in to view your profile.</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -568,6 +688,23 @@ const ExtendedProfile = () => {
               <h2 className="text-2xl font-bold mb-4">Loading your profile...</h2>
               <Progress value={loadingProgress} className="w-full max-w-md h-2" />
             </div>
+            <div className="space-y-4 mt-8">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-16 w-3/4" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+        ) : hasError ? (
+          <div className="space-y-6 text-center">
+            <h2 className="text-2xl font-bold text-destructive">Error Loading Profile</h2>
+            <p>There was an error loading your profile data. Please try refreshing the page.</p>
+            <button 
+              onClick={() => fetchAllProfileData()} 
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         ) : (
           <>
