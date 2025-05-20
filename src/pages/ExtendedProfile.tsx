@@ -789,8 +789,16 @@ const ExtendedProfile = () => {
                       } else if ('value' in skill && typeof skill.value === 'string') {
                         formattedSkill = skill.value;
                       } else {
-                        // Last resort: convert to string but avoid [object Object]
-                        formattedSkill = JSON.stringify(skill).replace(/[{}"]/g, '');
+                        // Extract the first property if it exists
+                        const skillKeys = Object.keys(skill);
+                        if (skillKeys.length > 0) {
+                          const firstKey = skillKeys[0];
+                          const value = skill[firstKey];
+                          formattedSkill = typeof value === 'string' ? value : firstKey;
+                        } else {
+                          // Last resort: convert to string but avoid [object Object]
+                          formattedSkill = JSON.stringify(skill).replace(/[{}"]/g, '');
+                        }
                       }
                     } else {
                       formattedSkill = String(skill);

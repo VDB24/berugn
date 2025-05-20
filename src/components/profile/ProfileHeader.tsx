@@ -51,8 +51,15 @@ const ProfileHeader = ({ profileData, completionPercentage }: ProfileHeaderProps
           if ('value' in skill && typeof skill.value === 'string') {
             return skill.value;
           }
-          // Otherwise convert to JSON string
-          return JSON.stringify(skill);
+          // If it's just a plain object, try to extract the first property value
+          const skillKeys = Object.keys(skill);
+          if (skillKeys.length > 0) {
+            const firstKey = skillKeys[0];
+            const value = skill[firstKey];
+            return typeof value === 'string' ? value : firstKey;
+          }
+          // Otherwise convert to JSON string and clean it up
+          return JSON.stringify(skill).replace(/[{}"]/g, '');
         }
         // Fallback to string conversion for any other type
         return String(skill);
