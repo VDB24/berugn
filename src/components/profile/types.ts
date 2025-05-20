@@ -1,3 +1,4 @@
+import { Json } from '@/integrations/supabase/types';
 
 // Define the database table names as a type
 export type TableName = 'work_experience' | 'education' | 'projects' | 'certificates';
@@ -11,7 +12,7 @@ export interface ProfileData {
   profile_image: string | null;
   experience: string | null;
   industry: string | null;
-  skills: string[];
+  skills: string[] | Json[];
 }
 
 export interface WorkExperience {

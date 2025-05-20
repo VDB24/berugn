@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +36,7 @@ import { WorkExperienceFormData } from '@/components/profile/WorkExperienceForm'
 import { EducationFormData } from '@/components/profile/EducationForm';
 import { ProjectFormData } from '@/components/profile/ProjectForm';
 import { CertificateFormData } from '@/components/profile/CertificateForm';
+import { Json } from '@/integrations/supabase/types';
 
 const ExtendedProfile = () => {
   const { currentUser } = useAuth();
@@ -165,15 +165,17 @@ const ExtendedProfile = () => {
         }
       } else {
         console.log('Profile data fetched:', profileData);
-        // Process skills data - ensure it's always an array
+        // Process skills data - ensure it's always an array of strings
         let processedSkills: string[] = [];
         
         if (profileData.skills) {
           if (Array.isArray(profileData.skills)) {
-            processedSkills = profileData.skills;
+            // Convert all items to strings to ensure type safety
+            processedSkills = profileData.skills.map(item => String(item));
           } else if (typeof profileData.skills === 'string') {
             try {
-              processedSkills = JSON.parse(profileData.skills);
+              const parsed = JSON.parse(profileData.skills);
+              processedSkills = Array.isArray(parsed) ? parsed.map(item => String(item)) : [];
             } catch (e) {
               console.error('Failed to parse skills string:', e);
               processedSkills = [];
@@ -192,7 +194,7 @@ const ExtendedProfile = () => {
         setProfileData({
           ...profileData,
           skills: processedSkills
-        } as ProfileData);
+        });
       }
       
       // Fetch work experience

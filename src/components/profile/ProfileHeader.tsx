@@ -3,6 +3,7 @@ import { User, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Json } from '@/integrations/supabase/types';
 
 export interface ProfileData {
   name: string;
@@ -13,7 +14,7 @@ export interface ProfileData {
   profile_image: string | null;
   experience: string | null;
   industry: string | null;
-  skills: string[];
+  skills: string[] | Json[];
 }
 
 interface ProfileHeaderProps {
