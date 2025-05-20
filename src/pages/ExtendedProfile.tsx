@@ -776,9 +776,30 @@ const ExtendedProfile = () => {
               <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-2">Skills</h2>
                 <div className="flex flex-wrap gap-2">
-                  {profileData.skills.map((skill, index) => (
-                    <Badge key={index} variant="secondary">{String(skill)}</Badge>
-                  ))}
+                  {profileData.skills.map((skill, index) => {
+                    // Properly format each skill before rendering
+                    let formattedSkill: string;
+                    
+                    if (typeof skill === 'string') {
+                      formattedSkill = skill;
+                    } else if (typeof skill === 'object' && skill !== null) {
+                      // Check if skill has a name or value property
+                      if ('name' in skill && typeof skill.name === 'string') {
+                        formattedSkill = skill.name;
+                      } else if ('value' in skill && typeof skill.value === 'string') {
+                        formattedSkill = skill.value;
+                      } else {
+                        // Last resort: convert to string but avoid [object Object]
+                        formattedSkill = JSON.stringify(skill).replace(/[{}"]/g, '');
+                      }
+                    } else {
+                      formattedSkill = String(skill);
+                    }
+                    
+                    return (
+                      <Badge key={index} variant="secondary">{formattedSkill}</Badge>
+                    );
+                  })}
                 </div>
               </div>
             )}

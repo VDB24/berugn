@@ -1,4 +1,3 @@
-
 import { User, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -37,9 +36,27 @@ const ProfileHeader = ({ profileData, completionPercentage }: ProfileHeaderProps
     );
   }
 
-  // Ensure skills are always strings
+  // Ensure skills are always properly formatted strings
   const formattedSkills = profileData.skills 
-    ? profileData.skills.map(skill => String(skill))
+    ? profileData.skills.map(skill => {
+        // Handle different potential formats of skill data
+        if (typeof skill === 'string') {
+          return skill;
+        } else if (typeof skill === 'object' && skill !== null) {
+          // If it's an object with a name property, use that
+          if ('name' in skill && typeof skill.name === 'string') {
+            return skill.name;
+          }
+          // If it's an object with a value property, use that
+          if ('value' in skill && typeof skill.value === 'string') {
+            return skill.value;
+          }
+          // Otherwise convert to JSON string
+          return JSON.stringify(skill);
+        }
+        // Fallback to string conversion for any other type
+        return String(skill);
+      })
     : [];
 
   return (
