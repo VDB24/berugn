@@ -777,7 +777,7 @@ const ExtendedProfile = () => {
                 <h2 className="text-xl font-semibold mb-2">Skills</h2>
                 <div className="flex flex-wrap gap-2">
                   {profileData.skills.map((skill, index) => (
-                    <Badge key={index} variant="secondary">{skill}</Badge>
+                    <Badge key={index} variant="secondary">{String(skill)}</Badge>
                   ))}
                 </div>
               </div>

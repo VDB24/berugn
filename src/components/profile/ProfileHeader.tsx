@@ -37,6 +37,11 @@ const ProfileHeader = ({ profileData, completionPercentage }: ProfileHeaderProps
     );
   }
 
+  // Ensure skills are always strings
+  const formattedSkills = profileData.skills 
+    ? profileData.skills.map(skill => String(skill))
+    : [];
+
   return (
     <div className="flex flex-col md:flex-row gap-6 items-center md:items-start mb-8">
       <Avatar className="h-24 w-24">
