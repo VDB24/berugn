@@ -15,6 +15,8 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   signInWithProvider: (provider: Provider) => Promise<{ error?: Error }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: Error }>;
+  signUpWithEmail: (email: string, password: string) => Promise<{ error?: Error }>;
   updateUserProfile: (profileData: Partial<{ profileCompleted: boolean; name: string }>) => Promise<void>;
 }
 
@@ -129,6 +131,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { error };
+      }
+      return { error: undefined };
+    } catch (error) {
+      return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/browse`,
+        },
+      });
+
+      if (error) {
+        return { error };
+      }
+      return { error: undefined };
+    } catch (error) {
+      return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -155,6 +198,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     logout,
     signInWithProvider,
+    signInWithEmail,
+    signUpWithEmail,
     updateUserProfile,
   };
 

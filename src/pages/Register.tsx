@@ -1,15 +1,22 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, Navigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { Linkedin } from 'lucide-react';
 import { Provider } from '@supabase/supabase-js';
+import { useState } from 'react';
 
 const Register = () => {
-  const { currentUser, isLoading, signInWithProvider } = useAuth();
+  const { currentUser, isLoading, signInWithProvider, signUpWithEmail } = useAuth();
   const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
 
   if (currentUser) {
     return <Navigate to="/browse" />;
@@ -44,6 +51,61 @@ const Register = () => {
     }
   };
 
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing fields',
+        description: 'Please fill in all fields.',
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: 'Password mismatch',
+        description: 'Passwords do not match.',
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        variant: 'destructive',
+        title: 'Password too short',
+        description: 'Password must be at least 6 characters long.',
+      });
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const { error } = await signUpWithEmail(email, password);
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Sign up failed',
+          description: error.message || 'Failed to create account. Please try again.',
+        });
+      } else {
+        toast({
+          title: 'Account created',
+          description: 'Your account has been created successfully! You can now log in.',
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign up failed',
+        description: 'An unexpected error occurred. Please try again.',
+      });
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-secondary/10 via-accent/10 to-background dark:from-background dark:via-background/90 dark:to-background">
       <Header />
@@ -68,6 +130,50 @@ const Register = () => {
           </div>
 
           <div className="bg-white/90 dark:bg-background/60 shadow-xl border border-border rounded-2xl p-8 animate-scale-up transition-all duration-500 ease-in-out">
+            {/* Email/Password Form */}
+            <form onSubmit={handleEmailSignUp} className="space-y-4 mb-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={emailLoading || isLoading}
+              >
+                {emailLoading ? 'Creating account...' : 'Create account'}
+              </Button>
+            </form>
+
             {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
@@ -75,7 +181,7 @@ const Register = () => {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-white dark:bg-background px-2 text-muted-foreground font-semibold tracking-wide">
-                  Sign up with
+                  Or sign up with
                 </span>
               </div>
             </div>
