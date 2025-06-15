@@ -74,13 +74,11 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
   return (
     <div className={cn("fixed top-6 left-0 right-0 z-50 px-4", className)}>
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Logo with glass effect */}
-        <div className="glass p-3 rounded-full">
-          <Logo />
-        </div>
+        {/* Logo */}
+        <Logo />
         
-        {/* Center Navigation with enhanced glass effect */}
-        <div className="flex items-center gap-3 glass py-2 px-2 rounded-full shadow-lg">
+        {/* Center Navigation */}
+        <div className="flex items-center gap-3 bg-background/10 border border-border/20 backdrop-blur-lg py-2 px-2 rounded-full shadow-lg">
           {items.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.name
@@ -103,7 +101,7 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
                 {isActive && (
                   <motion.div
                     layoutId="lamp"
-                    className="absolute inset-0 w-full glass rounded-full -z-10"
+                    className="absolute inset-0 w-full bg-primary/10 rounded-full -z-10"
                     initial={false}
                     transition={{
                       type: "spring",
@@ -123,77 +121,70 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
           })}
         </div>
 
-        {/* Right side utilities with glass effects */}
+        {/* Right side utilities */}
         <div className="flex items-center gap-2">
-          {/* Theme Toggle with glass effect */}
-          <div className="glass p-2 rounded-full">
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
           
           {/* Show login/signup buttons if not authenticated */}
           {!currentUser ? (
-            <div className="flex items-center gap-2 glass p-2 rounded-full">
+            <>
               <Link to="/login">
-                <Button variant="ghost" className="font-medium glass-card hover:shadow-md transition-all rounded-full">
+                <Button variant="outline" className="font-medium shadow-sm hover:shadow-md transition-all">
                   Log in
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="glass-card shadow-md hover:shadow-lg transition-all rounded-full bg-primary/80 backdrop-blur-lg">
-                  Sign up
-                </Button>
+                <Button className="shadow-md hover:shadow-lg transition-all">Sign up</Button>
               </Link>
-            </div>
+            </>
           ) : (
-            <div className="flex items-center gap-2 glass p-2 rounded-full">
-              {/* Notifications with glass effect */}
-              <div className="glass-card p-1 rounded-full">
-                <NotificationsPopover />
-              </div>
+            <>
+              {/* Notifications */}
+              <NotificationsPopover />
               
-              {/* Profile Dropdown with glass effect */}
+              {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-transparent hover:border-primary/30 transition-all p-0 glass-card">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-transparent hover:border-primary/30 transition-all p-0">
                     <Avatar className="h-full w-full">
                       <AvatarImage src={undefined} alt={currentUser.name || 'User'} />
-                      <AvatarFallback className="glass text-primary">
+                      <AvatarFallback className="bg-primary/10 text-primary">
                         {currentUser.name?.[0] || currentUser.email[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 glass-card overflow-hidden p-1 border-white/20">
+                <DropdownMenuContent align="end" className="w-56 overflow-hidden p-1">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{currentUser.name || 'User'}</p>
                       <p className="text-xs leading-none text-muted-foreground truncate">{currentUser.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/20" />
-                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer glass hover:glass-card transition-all rounded-lg">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
                     <Link to="/extended-profile">
                       <User className="h-4 w-4 mr-2" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer glass hover:glass-card transition-all rounded-lg">
+                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
                     <Link to="/settings">
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/20" />
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive glass hover:glass-card transition-all rounded-lg"
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            </>
           )}
         </div>
       </div>
