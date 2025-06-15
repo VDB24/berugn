@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -198,7 +197,12 @@ const Matches = () => {
                     {activeConnections
                       .filter(conn => filteredProfiles.some(p => p.id === conn.profile.id))
                       .map(({ connection, profile }) => (
-                        <MatchCard key={connection.id} profile={profile} />
+                        <MatchCard 
+                          key={connection.id} 
+                          profile={profile} 
+                          isConnected={true}
+                          connectionId={connection.id}
+                        />
                       ))}
                   </div>
                 ) : (

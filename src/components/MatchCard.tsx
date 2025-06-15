@@ -1,12 +1,23 @@
 
 import { type Profile } from '@/context/ProfileContext';
-import { ExternalLink, MessageCircle, Check, Eye } from 'lucide-react';
+import { ExternalLink, MessageCircle, Check, Eye, UserMinus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface MatchCardProps {
   profile: Profile;
@@ -15,7 +26,7 @@ interface MatchCardProps {
 }
 
 const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, connectionId }) => {
-  const { respondToRequest } = useProfile();
+  const { respondToRequest, removeConnection } = useProfile();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +40,19 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, con
 
   const handleViewProfile = () => {
     navigate(`/profile/${profile.id}`);
+  };
+
+  const handleRemoveConnection = async () => {
+    if (!connectionId) return;
+    
+    setIsLoading(true);
+    try {
+      await removeConnection(connectionId);
+    } catch (error) {
+      console.error('Error removing connection:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -140,6 +164,38 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, con
               <Eye size={16} />
               View Profile
             </Button>
+            {isConnected && connectionId && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <UserMinus size={16} />
+                    Remove
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Remove Connection</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to remove {profile.name} from your connections? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleRemoveConnection}
+                      disabled={isLoading}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isLoading ? 'Removing...' : 'Remove Connection'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </div>

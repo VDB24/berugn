@@ -48,6 +48,7 @@ interface ProfileContextType {
   updatePreferences: (newPreferences: Partial<Preference>) => Promise<void>;
   loadMoreProfiles: () => Promise<void>;
   respondToRequest: (connectionId: string, accept: boolean) => Promise<void>;
+  removeConnection: (connectionId: string) => Promise<void>;
   getSentRequests: () => Connection[];
   getPendingRequests: () => {connection: Connection, profile: Profile}[];
   getActiveConnections: () => {connection: Connection, profile: Profile}[];
@@ -641,6 +642,41 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const removeConnection = async (connectionId: string) => {
+    if (!currentUser) throw new Error('No user is logged in');
+    
+    try {
+      // Delete connection from Supabase
+      const { error } = await supabase
+        .from('connections')
+        .delete()
+        .eq('id', connectionId);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state - remove the connection
+      const updatedMatches = matches.filter(match => match.id !== connectionId);
+      setMatches(updatedMatches);
+      
+      toast({
+        title: "Connection Removed",
+        description: "The connection has been removed successfully",
+      });
+      
+      console.log(`Connection ${connectionId} removed`);
+    } catch (error) {
+      console.error("Error removing connection from Supabase:", error);
+      toast({
+        title: "Error",
+        description: "Could not remove the connection. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   const getSentRequests = () => {
     if (!currentUser) return [];
     
@@ -699,6 +735,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updatePreferences,
     loadMoreProfiles,
     respondToRequest,
+    removeConnection,
     getSentRequests,
     getPendingRequests,
     getActiveConnections
