@@ -9,22 +9,7 @@ import ThemeToggle from './theme/ThemeToggle';
 import { TubelightNavBar } from '@/components/ui/tubelight-navbar';
 
 const Header = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Handle scroll event to change header appearance
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -40,17 +25,11 @@ const Header = () => {
 
   return (
     <>
-      {/* Tubelight Navigation Bar */}
+      {/* Main Tubelight Navigation Bar */}
       <TubelightNavBar items={navItems} />
       
-      {/* Original Header */}
-      <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
-          isScrolled 
-            ? 'bg-background/80 shadow-md header-blur dark:bg-background/70 py-3 backdrop-blur-lg' 
-            : 'bg-transparent py-4'
-        }`}
-      >
+      {/* Top utility bar with logo, theme toggle, and user nav */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg py-3 border-b border-border/10">
         <div className="container flex items-center justify-between">
           <Logo />
 
