@@ -1,11 +1,12 @@
 
 import { type Profile } from '@/context/ProfileContext';
-import { ExternalLink, MessageCircle, Check } from 'lucide-react';
+import { ExternalLink, MessageCircle, Check, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface MatchCardProps {
   profile: Profile;
@@ -16,6 +17,7 @@ interface MatchCardProps {
 const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, connectionId }) => {
   const { respondToRequest } = useProfile();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleMessageClick = () => {
@@ -23,6 +25,10 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, con
       title: "Message feature",
       description: `Messaging ${profile.name} will be available soon`,
     });
+  };
+
+  const handleViewProfile = () => {
+    navigate(`/profile/${profile.id}`);
   };
   
   return (
@@ -114,8 +120,8 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, con
             {profile.bio}
           </p>
           
-          {/* Message button */}
-          <div className="mt-3">
+          {/* Action buttons */}
+          <div className="mt-3 flex gap-2">
             <Button 
               variant="default" 
               size="sm" 
@@ -124,6 +130,15 @@ const MatchCard: React.FC<MatchCardProps> = ({ profile, isConnected = false, con
             >
               <MessageCircle size={16} />
               Message
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={handleViewProfile}
+            >
+              <Eye size={16} />
+              View Profile
             </Button>
           </div>
         </div>
