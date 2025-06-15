@@ -104,11 +104,11 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Track profiles that have already been requested
   const [requestedProfileIds, setRequestedProfileIds] = useState<Set<string>>(new Set());
 
-  // Fetch profiles from Supabase
+  // Fetch ALL profiles from Supabase (not filtered by auth method)
   useEffect(() => {
     const fetchAllProfiles = async () => {
       try {
-        // Get all profiles from Supabase
+        // Get all profiles from Supabase - this includes profiles created via any auth method
         const { data: profilesData, error } = await supabase
           .from('profiles')
           .select('*');
@@ -121,7 +121,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Map Supabase profiles to our Profile interface
           const mappedProfiles: Profile[] = profilesData.map(mapSupabaseProfile);
           setAllProfiles(mappedProfiles);
-          console.log('Loaded profiles from Supabase:', mappedProfiles.length);
+          console.log('Loaded all profiles from Supabase (email + OAuth):', mappedProfiles.length);
         }
       } catch (error) {
         console.error('Error fetching profiles from Supabase:', error);
@@ -206,6 +206,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // 2. Profiles that have been swiped
       // 3. Profiles that the user has already connected with
       // 4. Profiles that the user has already requested
+      // Note: Now includes profiles from ALL auth methods (email + OAuth)
       const availableProfiles = allProfiles.filter(p => 
         p.userId !== currentUser.id && 
         !swipedIds.includes(p.id) &&
@@ -213,7 +214,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         !connectedUserIds.includes(p.userId)
       );
       
-      console.log(`Found ${availableProfiles.length} available profiles after filtering swiped and connected ones`);
+      console.log(`Found ${availableProfiles.length} available profiles after filtering (includes all auth methods)`);
       
       setPotentialConnections(prevConnections => {
         if (prevConnections.length === 0) {
