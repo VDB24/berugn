@@ -461,6 +461,29 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           return;
         }
+
+        // Check if we're already connected with this user
+        const existingConnection = matches.find(
+          m => ((m.userId === currentUser.id && m.connectedUserId === profileToSwipe.userId) ||
+                (m.connectedUserId === currentUser.id && m.userId === profileToSwipe.userId)) &&
+               m.status === 'connected'
+        );
+
+        if (existingConnection) {
+          console.log(`Already connected with ${profileToSwipe.name}, skipping...`);
+          
+          toast({
+            title: "Already Connected",
+            description: `You are already connected with ${profileToSwipe.name}`,
+          });
+          
+          // Still remove from potential connections
+          setPotentialConnections(prevConnections => {
+            return prevConnections.filter(p => p.id !== profileId);
+          });
+          
+          return;
+        }
         
         // Add to requested profiles
         const newRequestedIds = new Set(requestedProfileIds);
