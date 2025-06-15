@@ -11,7 +11,7 @@ import { type Profile } from '@/context/ProfileContext';
 
 const ViewProfile = () => {
   const { profileId } = useParams<{ profileId: string }>();
-  const { getAllProfiles } = useProfile();
+  const { getActiveConnections, getPendingRequests } = useProfile();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -30,8 +30,16 @@ const ViewProfile = () => {
         return;
       }
 
-      const profiles = getAllProfiles();
-      const foundProfile = profiles.find(p => p.id === profileId);
+      // Get all profiles from connections and pending requests
+      const activeConnections = getActiveConnections();
+      const pendingRequests = getPendingRequests();
+      
+      const allAvailableProfiles = [
+        ...activeConnections.map(conn => conn.profile),
+        ...pendingRequests.map(req => req.profile)
+      ];
+      
+      const foundProfile = allAvailableProfiles.find(p => p.id === profileId);
       
       if (!foundProfile) {
         toast({
@@ -51,7 +59,7 @@ const ViewProfile = () => {
     const timer = setTimeout(loadProfile, 500);
     
     return () => clearTimeout(timer);
-  }, [profileId, getAllProfiles, toast, navigate]);
+  }, [profileId, getActiveConnections, getPendingRequests, toast, navigate]);
 
   const handleBack = () => {
     navigate('/matches');
