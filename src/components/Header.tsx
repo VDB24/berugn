@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Home, User, Briefcase, FileText } from 'lucide-react';
 import Logo from './navigation/Logo';
 import UserNav from './navigation/UserNav';
 import MobileMenu from './navigation/MobileMenu';
 import ThemeToggle from './theme/ThemeToggle';
+import { TubelightNavBar } from '@/components/ui/tubelight-navbar';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -29,40 +30,54 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // Navigation items for the tubelight navbar
+  const navItems = [
+    { name: 'Home', url: '/', icon: Home },
+    { name: 'About', url: '/about', icon: User },
+    { name: 'Features', url: '/features', icon: Briefcase },
+    { name: 'Browse', url: '/browse', icon: FileText }
+  ];
+
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-background/80 shadow-md header-blur dark:bg-background/70 py-3 backdrop-blur-lg' 
-          : 'bg-transparent py-4'
-      }`}
-    >
-      <div className="container flex items-center justify-between">
-        <Logo />
+    <>
+      {/* Tubelight Navigation Bar */}
+      <TubelightNavBar items={navItems} />
+      
+      {/* Original Header */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
+          isScrolled 
+            ? 'bg-background/80 shadow-md header-blur dark:bg-background/70 py-3 backdrop-blur-lg' 
+            : 'bg-transparent py-4'
+        }`}
+      >
+        <div className="container flex items-center justify-between">
+          <Logo />
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <ThemeToggle />
-          <UserNav />
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <ThemeToggle />
+            <UserNav />
+          </nav>
 
-        {/* Mobile Menu Button */}
-        <div className="flex items-center space-x-2 md:hidden">
-          <ThemeToggle />
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="md:hidden transition-all duration-300" 
-            onClick={toggleMenu}
-          >
-            {isMenuOpen ? <X size={24} className="text-secondary" /> : <Menu size={24} className="text-secondary" />}
-          </Button>
+          {/* Mobile Menu Button */}
+          <div className="flex items-center space-x-2 md:hidden">
+            <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden transition-all duration-300" 
+              onClick={toggleMenu}
+            >
+              {isMenuOpen ? <X size={24} className="text-secondary" /> : <Menu size={24} className="text-secondary" />}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Mobile Navigation */}
-      <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-    </header>
+        {/* Mobile Navigation */}
+        <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      </header>
+    </>
   );
 };
 
