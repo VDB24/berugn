@@ -1,6 +1,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { RainbowButton } from '@/components/ui/rainbow-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
@@ -165,13 +166,13 @@ const Register = () => {
                   required
                 />
               </div>
-              <Button 
+              <RainbowButton 
                 type="submit" 
                 className="w-full" 
                 disabled={emailLoading || isLoading}
               >
                 {emailLoading ? 'Creating account...' : 'Create account'}
-              </Button>
+              </RainbowButton>
             </form>
 
             {/* Divider */}

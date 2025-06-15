@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
+import { RainbowButton } from '@/components/ui/rainbow-button';
 import { Link } from 'react-router-dom';
 import { Briefcase, Users, MessageSquare, Filter, Bell, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -75,17 +75,17 @@ const Features = () => {
               <div className="pt-4">
                 {currentUser ? (
                   <Link to="/browse">
-                    <Button size="lg" className="gap-2">
+                    <RainbowButton size="lg" className="gap-2">
                       Start browsing
                       <ArrowRight size={16} />
-                    </Button>
+                    </RainbowButton>
                   </Link>
                 ) : (
                   <Link to="/register">
-                    <Button size="lg" className="gap-2">
+                    <RainbowButton size="lg" className="gap-2">
                       Try it free
                       <ArrowRight size={16} />
-                    </Button>
+                    </RainbowButton>
                   </Link>
                 )}
               </div>
@@ -189,17 +189,17 @@ const Features = () => {
             
             {currentUser ? (
               <Link to="/browse">
-                <Button size="lg" className="gap-2">
+                <RainbowButton size="lg" className="gap-2">
                   Start browsing
                   <ArrowRight size={16} />
-                </Button>
+                </RainbowButton>
               </Link>
             ) : (
               <Link to="/register">
-                <Button size="lg" className="gap-2">
+                <RainbowButton size="lg" className="gap-2">
                   Sign up free
                   <ArrowRight size={16} />
-                </Button>
+                </RainbowButton>
               </Link>
             )}
           </div>

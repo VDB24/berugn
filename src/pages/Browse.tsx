@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -7,6 +8,7 @@ import Header from '@/components/Header';
 import ProfileCard from '@/components/ProfileCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { RainbowButton } from '@/components/ui/rainbow-button';
 import { Star, RefreshCw, Container, User } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -228,12 +230,11 @@ const Browse = () => {
           </div>
           
           {/* Refill button */}
-          <Button
-            variant="outline"
+          <RainbowButton
             size="sm"
             onClick={handleRefillCapacity}
             disabled={isRefilling || dailyLimit.remaining === dailyLimit.total}
-            className="mt-2 bg-secondary/10 hover:bg-secondary/20 border-secondary/30"
+            className="mt-2"
           >
             {isRefilling ? (
               <>
@@ -246,7 +247,7 @@ const Browse = () => {
                 Refill View Capacity
               </>
             )}
-          </Button>
+          </RainbowButton>
           
           {/* Profiles count indicator */}
           <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm mt-4 ml-3">
@@ -293,8 +294,7 @@ const Browse = () => {
                     You've viewed all available profiles for now. Check back later for new connections!
                   </p>
                   <div className="space-y-4">
-                    <Button 
-                      variant="outline" 
+                    <RainbowButton 
                       onClick={handleRefresh}
                       disabled={isRefreshing}
                       className="w-full"
@@ -310,7 +310,7 @@ const Browse = () => {
                           Refresh Profiles
                         </>
                       )}
-                    </Button>
+                    </RainbowButton>
                   </div>
                 </div>
               )}
