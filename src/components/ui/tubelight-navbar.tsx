@@ -75,10 +75,12 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
     <div className={cn("fixed top-6 left-0 right-0 z-50 px-4", className)}>
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo */}
-        <Logo />
+        <div className="glass-button rounded-full p-2">
+          <Logo />
+        </div>
         
         {/* Center Navigation */}
-        <div className="flex items-center gap-3 bg-background/10 border border-border/20 backdrop-blur-lg py-2 px-2 rounded-full shadow-lg">
+        <div className="flex items-center gap-3 glass-nav py-2 px-2 rounded-full shadow-2xl">
           {items.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.name
@@ -89,9 +91,9 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
                 to={item.url}
                 onClick={() => setActiveTab(item.name)}
                 className={cn(
-                  "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
-                  "text-foreground/80 hover:text-primary",
-                  isActive && "text-primary",
+                  "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-all duration-300 glass-button",
+                  "text-foreground/80 hover:text-primary hover:bg-white/20",
+                  isActive && "text-primary bg-white/30",
                 )}
               >
                 <span className="hidden md:inline">{item.name}</span>
@@ -101,7 +103,7 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
                 {isActive && (
                   <motion.div
                     layoutId="lamp"
-                    className="absolute inset-0 w-full bg-primary/10 rounded-full -z-10"
+                    className="absolute inset-0 w-full bg-primary/20 backdrop-blur-sm rounded-full -z-10 border border-primary/30"
                     initial={false}
                     transition={{
                       type: "spring",
@@ -123,38 +125,42 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
 
         {/* Right side utilities */}
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <div className="glass-button rounded-full p-1">
+            <ThemeToggle />
+          </div>
           
           {/* Show login/signup buttons if not authenticated */}
           {!currentUser ? (
-            <>
+            <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="outline" className="font-medium shadow-sm hover:shadow-md transition-all">
+                <Button variant="outline" className="font-medium shadow-lg hover:shadow-xl transition-all backdrop-blur-lg">
                   Log in
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="shadow-md hover:shadow-lg transition-all">Sign up</Button>
+                <Button className="shadow-lg hover:shadow-xl transition-all">Sign up</Button>
               </Link>
-            </>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               {/* Notifications */}
-              <NotificationsPopover />
+              <div className="glass-button rounded-full p-1">
+                <NotificationsPopover />
+              </div>
               
               {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-transparent hover:border-primary/30 transition-all p-0">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-transparent hover:border-primary/30 transition-all p-0 glass-button">
                     <Avatar className="h-full w-full">
                       <AvatarImage src={undefined} alt={currentUser.name || 'User'} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
+                      <AvatarFallback className="bg-primary/20 text-primary backdrop-blur-sm">
                         {currentUser.name?.[0] || currentUser.email[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 overflow-hidden p-1">
+                <DropdownMenuContent align="end" className="w-56 overflow-hidden p-1 glass-dropdown">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{currentUser.name || 'User'}</p>
@@ -162,13 +168,13 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
+                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer glass-button">
                     <Link to="/extended-profile">
                       <User className="h-4 w-4 mr-2" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
+                  <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer glass-button">
                     <Link to="/settings">
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
@@ -177,14 +183,14 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive glass-button"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </>
+            </div>
           )}
         </div>
       </div>

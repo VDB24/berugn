@@ -1,5 +1,4 @@
 
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -7,20 +6,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98] glass",
   {
     variants: {
       variant: {
-        default: "bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm hover:shadow-md",
+        default: "bg-secondary/80 text-secondary-foreground hover:bg-secondary/90 shadow-md hover:shadow-lg backdrop-blur-lg border border-white/20",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md",
+          "bg-destructive/80 text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg backdrop-blur-lg border border-white/20",
         outline:
-          "border border-secondary bg-background hover:bg-secondary hover:text-secondary-foreground text-secondary shadow-sm hover:shadow-md",
+          "border border-secondary/50 bg-background/50 hover:bg-secondary/20 hover:text-secondary-foreground text-secondary shadow-md hover:shadow-lg backdrop-blur-lg",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md",
-        ghost: "hover:bg-accent/10 hover:text-accent",
+          "bg-secondary/80 text-secondary-foreground hover:bg-secondary/70 shadow-md hover:shadow-lg backdrop-blur-lg border border-white/20",
+        ghost: "hover:bg-accent/20 hover:text-accent backdrop-blur-sm",
         link: "text-primary underline-offset-4 hover:underline",
-        neon: "neon-button",
+        neon: "neon-button backdrop-blur-lg",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -57,4 +56,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-
